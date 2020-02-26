@@ -302,6 +302,8 @@ enum tep_flag {
 	TEP_NSEC_OUTPUT		= 1,	/* output in NSECS */
 	TEP_DISABLE_SYS_PLUGINS	= 1 << 1,
 	TEP_DISABLE_PLUGINS	= 1 << 2,
+	TEP_NO_PARSING_WARNINGS	= 1 << 3, /* Disable warnings while parsing
+					     event's format strings */
 };
 
 #define TEP_ERRORS 							      \

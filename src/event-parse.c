@@ -7796,6 +7796,7 @@ static enum tep_errno parse_format(struct tep_event **eventp,
 				   struct tep_handle *tep, const char *buf,
 				   unsigned long size, const char *sys)
 {
+	int show_warning_state = show_warning;
 	struct tep_event *event;
 	int ret;
 
@@ -7848,11 +7849,12 @@ static enum tep_errno parse_format(struct tep_event **eventp,
 	 * If the event has an override, don't print warnings if the event
 	 * print format fails to parse.
 	 */
-	if (tep && find_event_handle(tep, event))
+	if (tep && (tep_test_flag(tep, TEP_NO_PARSING_WARNINGS) ||
+		    find_event_handle(tep, event)))
 		show_warning = 0;
 
 	ret = event_read_print(event);
-	show_warning = 1;
+	show_warning = show_warning_state;
 
 	if (ret < 0) {
 		ret = TEP_ERRNO__READ_PRINT_FAILED;
