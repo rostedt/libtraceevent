@@ -3,7 +3,7 @@ libtraceevent(3)
 
 NAME
 ----
-tep_load_plugins, tep_unload_plugins, tep_load_plugins_hook - Load / unload traceevent plugins.
+tep_load_plugins, tep_unload_plugins, tep_load_plugins_hook, tep_add_plugin_path - Load / unload traceevent plugins.
 
 SYNOPSIS
 --------
@@ -19,6 +19,8 @@ void *tep_load_plugins_hook*(struct tep_handle pass:[*]_tep_, const char pass:[*
 					       const char pass:[*]name,
 					       void pass:[*]data),
 			   void pass:[*]_data_);
+int *tep_add_plugin_path*(struct tep_handle pass:[*]tep, char pass:[*]path,
+			  enum tep_plugin_load_priority prio);
 --
 
 DESCRIPTION
@@ -52,16 +54,33 @@ _tep_load_plugins()_. The _tep_ argument is trace event parser context. The
 _plugin_list_ is the list of loaded plugins, returned by
 the _tep_load_plugins()_ function.
 
-The _tep_load_plugins_hook_ function walks through all directories with plugins
+The _tep_load_plugins_hook()_ function walks through all directories with plugins
 and calls user specified _load_plugin()_ hook for each plugin file. Only files
 with given _suffix_ are considered to be plugins. The _data_ is a user specified
 context, passed to _load_plugin()_. Directories and the walk order are the same
 as in _tep_load_plugins()_ API.
 
+The _tep_add_plugin_path()_ functions adds additional directories with plugins in
+the _tep_->plugins_dir list. It must be called before _tep_load_plugins()_ in order
+for the plugins from the new directories to be loaded. The _tep_ argument is
+the trace event parser context. The _path_ is the full path to the new plugin
+directory. The _prio_ argument specifies the loading priority order for the
+new directory of plugins. The loading priority is important in case of different
+versions of the same plugin located in multiple plugin directories.The last loaded
+plugin wins. The priority can be:
+[verse]
+--
+	_TEP_PLUGIN_FIRST_	- Load plugins from this directory first
+	_TEP_PLUGIN_LAST_	- Load plugins from this directory last
+--
+Where the plugins in TEP_PLUGIN_LAST" will take precedence over the
+plugins in the other directories.
+
 RETURN VALUE
 ------------
 The _tep_load_plugins()_ function returns a list of successfully loaded plugins,
 or NULL in case no plugins are loaded.
+The _tep_add_plugin_path()_ function returns -1 in case of an error, 0 otherwise.
 
 EXAMPLE
 -------
@@ -70,6 +89,8 @@ EXAMPLE
 #include <event-parse.h>
 ...
 struct tep_handle *tep = tep_alloc();
+...
+tep_add_plugin_path(tep, "~/dev_plugins", TEP_PLUGIN_LAST);
 ...
 struct tep_plugin_list *plugins = tep_load_plugins(tep);
 if (plugins == NULL) {
