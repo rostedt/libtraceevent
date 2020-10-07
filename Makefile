@@ -59,7 +59,7 @@ export man_dir man_dir_SQ INSTALL
 export DESTDIR DESTDIR_SQ
 export EVENT_PARSE_VERSION
 
-include ../../scripts/Makefile.include
+include scripts/Makefile.include
 
 # copy a bit from Linux kbuild
 
@@ -71,9 +71,7 @@ ifndef VERBOSE
 endif
 
 ifeq ($(srctree),)
-srctree := $(patsubst %/,%,$(dir $(CURDIR)))
-srctree := $(patsubst %/,%,$(dir $(srctree)))
-srctree := $(patsubst %/,%,$(dir $(srctree)))
+srctree := $(CURDIR)
 #$(info Determined 'srctree' to be $(srctree))
 endif
 
@@ -100,7 +98,7 @@ LIB_TARGET  = libtraceevent.a libtraceevent.so.$(EVENT_PARSE_VERSION)
 LIB_INSTALL = libtraceevent.a libtraceevent.so*
 LIB_INSTALL := $(addprefix $(OUTPUT),$(LIB_INSTALL))
 
-INCLUDES = -I. -I $(srctree)/tools/include $(CONFIG_INCLUDES)
+INCLUDES = -I. -I $(srctree)/include $(CONFIG_INCLUDES)
 
 # Set compile option CFLAGS
 ifdef EXTRA_CFLAGS
@@ -126,7 +124,7 @@ endif
 MAKEOVERRIDES=
 
 export srctree OUTPUT CC LD CFLAGS V
-build := -f $(srctree)/tools/build/Makefile.build dir=. obj
+build := -f $(srctree)/build/Makefile.build dir=. obj
 
 TE_IN      := $(OUTPUT)libtraceevent-in.o
 LIB_TARGET := $(addprefix $(OUTPUT),$(LIB_TARGET))
