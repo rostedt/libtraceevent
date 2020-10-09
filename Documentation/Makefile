@@ -1,5 +1,5 @@
-include ../../../scripts/Makefile.include
-include ../../../scripts/utilities.mak
+include ../scripts/Makefile.include
+include ../scripts/utilities.mak
 
 # This Makefile and manpage XSL files were taken from tools/perf/Documentation
 # and modified for libtraceevent.

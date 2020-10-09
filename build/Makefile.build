@@ -24,7 +24,7 @@ ifneq ($(findstring s,$(filter-out --%,$(MAKEFLAGS))),)
   quiet=silent_
 endif
 
-build-dir := $(srctree)/tools/build
+build-dir := $(srctree)/build
 
 # Define $(fixdep) for dep-cmd function
 ifeq ($(OUTPUT),)
