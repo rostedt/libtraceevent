@@ -65,7 +65,7 @@ PLUGIN_DIR = -DPLUGIN_DIR="$(plugin_dir)"
 PLUGIN_DIR_SQ = '$(subst ','\'',$(PLUGIN_DIR))'
 endif
 
-include ../scripts/Makefile.include
+include ../../../scripts/Makefile.include
 
 # copy a bit from Linux kbuild
 
@@ -78,6 +78,9 @@ endif
 
 ifeq ($(srctree),)
 srctree := $(patsubst %/,%,$(dir $(CURDIR)))
+srctree := $(patsubst %/,%,$(dir $(srctree)))
+srctree := $(patsubst %/,%,$(dir $(srctree)))
+srctree := $(patsubst %/,%,$(dir $(srctree)))
 #$(info Determined 'srctree' to be $(srctree))
 endif
 
@@ -93,7 +96,7 @@ CONFIG_FLAGS   =
 OBJ            = $@
 N              =
 
-INCLUDES = -I. -I.. -I $(srctree)/include $(CONFIG_INCLUDES)
+INCLUDES = -I. -I.. -I $(srctree)/tools/include $(CONFIG_INCLUDES)
 
 # Set compile option CFLAGS
 ifdef EXTRA_CFLAGS
@@ -120,7 +123,7 @@ MAKEOVERRIDES=
 
 export srctree OUTPUT CC LD CFLAGS V
 
-build := -f $(srctree)/build/Makefile.build dir=. obj
+build := -f $(srctree)/tools/build/Makefile.build dir=. obj
 
 DYNAMIC_LIST_FILE := $(OUTPUT)libtraceevent-dynamic-list
 
