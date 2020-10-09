@@ -1,11 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
-# trace-cmd version
+# libtraceevent version
 EP_VERSION = 1
 EP_PATCHLEVEL = 1
 EP_EXTRAVERSION = 0
-
-# file format version
-FILE_VERSION = 6
 
 MAKEFLAGS += --no-print-directory
 
