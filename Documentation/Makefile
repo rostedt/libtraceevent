@@ -157,7 +157,7 @@ endif
 do-install-man: man
 	$(call QUIET_INSTALL, Documentation-man) \
 		$(INSTALL) -d -m 755 $(DESTDIR)$(man3dir); \
-		$(INSTALL) -m 644 $(DOC_MAN3) $(DESTDIR)$(man3dir);
+		$(INSTALL) -m 644 $(OUTPUT)*.3 $(DESTDIR)$(man3dir);
 
 install-man: check-man-tools man do-install-man
 
