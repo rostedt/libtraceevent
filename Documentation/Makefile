@@ -147,7 +147,7 @@ html: $(MAN_HTML)
 
 $(MAN_HTML) $(DOC_MAN3): asciidoc.conf
 
-install: install-man
+install: install-man install-html
 
 check-man-tools:
 ifdef missing_tools
@@ -161,12 +161,22 @@ do-install-man: man
 
 install-man: check-man-tools man do-install-man
 
-uninstall: uninstall-man
+do-install-html: html
+	$(call QUIET_INSTALL, Documentation-html) \
+		$(INSTALL) -d -m 755 $(DESTDIR)$(htmldir); \
+		$(INSTALL) -m 644 $(OUTPUT)*.html $(DESTDIR)$(htmldir);
+
+install-html: check-man-tools html do-install-html
+
+uninstall: uninstall-man uninstall-html
 
 uninstall-man:
 	$(call QUIET_UNINST, Documentation-man) \
 		$(Q)$(RM) $(addprefix $(DESTDIR)$(man3dir)/,$(DOC_MAN3))
 
+uninstall-html:
+	$(call QUIET_UNINST, Documentation-html) \
+		$(Q)$(RM) $(addprefix $(DESTDIR)$(htmldir)/,$(MAN_HTML))
 
 ifdef missing_tools
   DO_INSTALL_MAN = $(warning Please install $(missing_tools) to have the man pages installed)
