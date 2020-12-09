@@ -255,8 +255,8 @@ install: install_lib
 
 clean: clean_plugins
 	$(call QUIET_CLEAN, libtraceevent) \
-		$(RM) *.o *~ $(TARGETS) *.a *.so $(VERSION_FILES) .*.d .*.cmd; \
-		$(RM) TRACEEVENT-CFLAGS tags TAGS; \
+		$(RM) $(OUTPUT)*.o $(OUTPUT)*~ $(TARGETS) $(OUTPUT)*.a $(OUTPUT)*.so $(VERSION_FILES) $(OUTPUT).*.d $(OUTPUT).*.cmd; \
+		$(RM) TRACEEVENT-CFLAGS $(OUTPUT)tags $(OUTPUT)TAGS; \
 		$(RM) $(PKG_CONFIG_FILE)
 
 PHONY += doc

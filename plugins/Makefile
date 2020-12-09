@@ -210,8 +210,9 @@ install: $(PLUGINS)
 
 clean:
 	$(call QUIET_CLEAN, trace_plugins) \
-		$(RM) *.o *~ $(TARGETS) *.a *.so $(VERSION_FILES) .*.d .*.cmd; \
-		$(RM) $(OUTPUT)libtraceevent-dynamic-list \
+		$(RM) $(OUTPUT)*.o $(OUTPUT)*~ $(TARGETS) $(OUTPUT)*.a $(OUTPUT)*.so $(VERSION_FILES) .*.d .*.cmd; \
+		$(RM) $(OUTPUT)libtraceevent-dynamic-list; \
+		$(RM) $(PLUGINS); \
 		$(RM) TRACEEVENT-CFLAGS tags TAGS;
 
 PHONY += force plugins
