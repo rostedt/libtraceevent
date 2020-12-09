@@ -135,7 +135,7 @@ MAKEOVERRIDES=
 export srctree OUTPUT CC LD CFLAGS V
 build := -f $(srctree)/build/Makefile.build dir=. obj
 
-TE_IN      := $(OUTPUT)libtraceevent-in.o
+TE_IN      := $(OUTPUT)src/libtraceevent-in.o
 LIB_TARGET := $(addprefix $(OUTPUT),$(LIB_TARGET))
 
 CMD_TARGETS = $(LIB_TARGET) $(PKG_CONFIG_FILE)
@@ -147,7 +147,7 @@ all: all_cmd plugins
 all_cmd: $(CMD_TARGETS)
 
 $(TE_IN): force
-	$(Q)$(MAKE) $(build)=libtraceevent
+	$(Q)$(call descend,src,libtraceevent)
 
 $(OUTPUT)$(LIBTRACEEVENT_SHARED): $(TE_IN)
 	$(Q)mkdir -p $(OUTPUT)$(bdir)
@@ -252,14 +252,14 @@ install_pkgconfig: $(PKG_CONFIG_FILE)
 
 install_headers:
 	$(call QUIET_INSTALL, headers) \
-		$(call do_install,event-parse.h,$(includedir_SQ),644); \
-		$(call do_install,event-utils.h,$(includedir_SQ),644); \
-		$(call do_install,trace-seq.h,$(includedir_SQ),644); \
-		$(call do_install,kbuffer.h,$(includedir_SQ),644)
+		$(call do_install,src/event-parse.h,$(includedir_SQ),644); \
+		$(call do_install,src/event-utils.h,$(includedir_SQ),644); \
+		$(call do_install,src/trace-seq.h,$(includedir_SQ),644); \
+		$(call do_install,src/kbuffer.h,$(includedir_SQ),644)
 
 install: install_lib
 
-clean: clean_plugins
+clean: clean_plugins clean_src
 	$(call QUIET_CLEAN, libtraceevent) \
 		$(RM) $(OUTPUT)*.o $(OUTPUT)*~ $(TARGETS) $(OUTPUT)*.a $(OUTPUT)*.so $(VERSION_FILES) $(OUTPUT).*.d $(OUTPUT).*.cmd; \
 		$(RM) TRACEEVENT-CFLAGS $(OUTPUT)tags $(OUTPUT)TAGS; \
@@ -309,6 +309,10 @@ install_plugins:
 PHONY += clean_plugins
 clean_plugins:
 	$(call descend,plugins,clean)
+
+PHONY += clean_src
+clean_src:
+	$(call descend,src,clean)
 
 force:
 

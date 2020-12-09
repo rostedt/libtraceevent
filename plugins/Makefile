@@ -93,7 +93,7 @@ CONFIG_FLAGS   =
 OBJ            = $@
 N              =
 
-INCLUDES = -I. -I.. -I $(srctree)/include $(CONFIG_INCLUDES)
+INCLUDES = -I. -I.. -I../src -I $(srctree)/include $(CONFIG_INCLUDES)
 
 # Set compile option CFLAGS
 ifdef EXTRA_CFLAGS
