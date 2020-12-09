@@ -94,8 +94,11 @@ N		=
 
 EVENT_PARSE_VERSION = $(EP_VERSION).$(EP_PATCHLEVEL).$(EP_EXTRAVERSION)
 
-LIB_TARGET  = libtraceevent.a libtraceevent.so libtraceevent.so.$(EP_VERSION) libtraceevent.so.$(EVENT_PARSE_VERSION)
-LIB_INSTALL = libtraceevent.a libtraceevent.so*
+LIBTRACEEVENT_STATIC = libtraceevent.a
+LIBTRACEEVENT_SHARED = libtraceevent.so.$(EVENT_PARSE_VERSION)
+
+LIB_TARGET  = $(LIBTRACEEVENT_STATIC) libtraceevent.so libtraceevent.so.$(EP_VERSION) $(LIBTRACEEVENT_SHARED)
+LIB_INSTALL = $(LIBTRACEEVENT_STATIC) libtraceevent.so*
 LIB_INSTALL := $(addprefix $(OUTPUT),$(LIB_INSTALL))
 
 INCLUDES = -I. -I $(srctree)/include $(CONFIG_INCLUDES)
@@ -142,16 +145,16 @@ all_cmd: $(CMD_TARGETS)
 $(TE_IN): force
 	$(Q)$(MAKE) $(build)=libtraceevent
 
-$(OUTPUT)libtraceevent.so.$(EVENT_PARSE_VERSION): $(TE_IN)
+$(OUTPUT)$(LIBTRACEEVENT_SHARED): $(TE_IN)
 	$(QUIET_LINK)$(CC) --shared $(LDFLAGS) $^ -Wl,-soname,libtraceevent.so.$(EP_VERSION) -o $@  $(LIBS)
 
 $(OUTPUT)libtraceevent.so: $(OUTPUT)libtraceevent.so.$(EP_VERSION)
 	@ln -sf $(<F) $@
 
-$(OUTPUT)libtraceevent.so.$(EP_VERSION): $(OUTPUT)libtraceevent.so.$(EVENT_PARSE_VERSION)
+$(OUTPUT)libtraceevent.so.$(EP_VERSION): $(OUTPUT)$(LIBTRACEEVENT_SHARED)
 	@ln -sf $(<F) $@
 
-$(OUTPUT)libtraceevent.a: $(TE_IN)
+$(OUTPUT)$(LIBTRACEEVENT_STATIC): $(TE_IN)
 	$(QUIET_LINK)$(RM) $@; $(AR) rcs $@ $^
 
 $(OUTPUT)%.so: $(OUTPUT)%-in.o
