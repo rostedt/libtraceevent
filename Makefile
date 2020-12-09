@@ -75,7 +75,7 @@ srctree := $(CURDIR)
 #$(info Determined 'srctree' to be $(srctree))
 endif
 
-export prefix libdir src obj
+export prefix libdir
 
 # Shell quotes
 libdir_SQ = $(subst ','\'',$(libdir))

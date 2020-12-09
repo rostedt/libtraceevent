@@ -81,7 +81,7 @@ srctree := $(patsubst %/,%,$(dir $(CURDIR)))
 #$(info Determined 'srctree' to be $(srctree))
 endif
 
-export prefix libdir src obj
+export prefix libdir
 
 # Shell quotes
 plugin_dir_SQ = $(subst ','\'',$(plugin_dir))
