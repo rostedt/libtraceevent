@@ -52,14 +52,14 @@ includedir_relative = traceevent
 includedir = $(prefix)/include/$(includedir_relative)
 includedir_SQ = '$(subst ','\'',$(includedir))'
 
-PKG_CONFIG_SOURCE_FILE = libtraceevent.pc
-PKG_CONFIG_FILE := $(addprefix $(OUTPUT),$(PKG_CONFIG_SOURCE_FILE))
-
 export man_dir man_dir_SQ INSTALL
 export DESTDIR DESTDIR_SQ
 export EVENT_PARSE_VERSION
 
 include scripts/Makefile.include
+
+PKG_CONFIG_SOURCE_FILE = libtraceevent.pc
+PKG_CONFIG_FILE := $(addprefix $(OUTPUT),$(PKG_CONFIG_SOURCE_FILE))
 
 # copy a bit from Linux kbuild
 
