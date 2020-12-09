@@ -94,11 +94,15 @@ N		=
 
 EVENT_PARSE_VERSION = $(EP_VERSION).$(EP_PATCHLEVEL).$(EP_EXTRAVERSION)
 
-LIBTRACEEVENT_STATIC = libtraceevent.a
-LIBTRACEEVENT_SHARED = libtraceevent.so.$(EVENT_PARSE_VERSION)
+bdir = lib
 
-LIB_TARGET  = $(LIBTRACEEVENT_STATIC) libtraceevent.so libtraceevent.so.$(EP_VERSION) $(LIBTRACEEVENT_SHARED)
-LIB_INSTALL = $(LIBTRACEEVENT_STATIC) libtraceevent.so*
+export bdir
+
+LIBTRACEEVENT_STATIC = $(bdir)/libtraceevent.a
+LIBTRACEEVENT_SHARED = $(bdir)/libtraceevent.so.$(EVENT_PARSE_VERSION)
+
+LIB_TARGET  = $(LIBTRACEEVENT_STATIC) $(bdir)/libtraceevent.so $(bdir)/libtraceevent.so.$(EP_VERSION) $(LIBTRACEEVENT_SHARED)
+LIB_INSTALL = $(LIBTRACEEVENT_STATIC) $(bdir)/libtraceevent.so*
 LIB_INSTALL := $(addprefix $(OUTPUT),$(LIB_INSTALL))
 
 INCLUDES = -I. -I $(srctree)/include $(CONFIG_INCLUDES)
@@ -146,18 +150,20 @@ $(TE_IN): force
 	$(Q)$(MAKE) $(build)=libtraceevent
 
 $(OUTPUT)$(LIBTRACEEVENT_SHARED): $(TE_IN)
+	$(Q)mkdir -p $(OUTPUT)$(bdir)
 	$(QUIET_LINK)$(CC) --shared $(LDFLAGS) $^ -Wl,-soname,libtraceevent.so.$(EP_VERSION) -o $@  $(LIBS)
 
-$(OUTPUT)libtraceevent.so: $(OUTPUT)libtraceevent.so.$(EP_VERSION)
+$(OUTPUT)$(bdir)/libtraceevent.so: $(OUTPUT)$(bdir)/libtraceevent.so.$(EP_VERSION)
 	@ln -sf $(<F) $@
 
-$(OUTPUT)libtraceevent.so.$(EP_VERSION): $(OUTPUT)$(LIBTRACEEVENT_SHARED)
+$(OUTPUT)$(bdir)/libtraceevent.so.$(EP_VERSION): $(OUTPUT)$(LIBTRACEEVENT_SHARED)
 	@ln -sf $(<F) $@
 
 $(OUTPUT)$(LIBTRACEEVENT_STATIC): $(TE_IN)
+	$(Q)mkdir -p $(OUTPUT)$(bdir)
 	$(QUIET_LINK)$(RM) $@; $(AR) rcs $@ $^
 
-$(OUTPUT)%.so: $(OUTPUT)%-in.o
+$(OUTPUT)$(bdir)/%.so: $(OUTPUT)%-in.o
 	$(QUIET_LINK)$(CC) $(CFLAGS) -shared $(LDFLAGS) -nostartfiles -o $@ $^ $(LIBS)
 
 define make_version.h
