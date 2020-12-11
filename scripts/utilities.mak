@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0
 # This allows us to work with the newline character:
 define newline
 
