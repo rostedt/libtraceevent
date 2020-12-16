@@ -213,6 +213,21 @@ TAGS:	force
 	find . -name '*.[ch]' | xargs etags \
 	--regex='/_PE(\([^,)]*\).*/TEP_ERRNO__\1/'
 
+define build_prefix
+	(echo $1 > $@.tmp;	\
+	if [ -r $@ ] && cmp -s $@ $@.tmp; then				\
+		rm -f $@.tmp;						\
+	else								\
+		$(PRINT_GEN)						\
+		mv -f $@.tmp $@;					\
+	fi);
+endef
+
+BUILD_PREFIX := $(OUTPUT)build_prefix
+
+$(BUILD_PREFIX): force
+	$(Q)$(call build_prefix,$(prefix))
+
 define do_install_mkdir
 	if [ ! -d '$(DESTDIR_SQ)$1' ]; then		\
 		$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$1';	\
@@ -232,7 +247,7 @@ define do_make_pkgconfig_file
 	sed -i "s|HEADER_DIR|$(includedir)|g" ${PKG_CONFIG_FILE};
 endef
 
-$(PKG_CONFIG_FILE) : ${PKG_CONFIG_SOURCE_FILE}.template
+$(PKG_CONFIG_FILE) : ${PKG_CONFIG_SOURCE_FILE}.template $(BUILD_PREFIX)
 	$(QUIET_GEN) $(call do_make_pkgconfig_file,$(prefix))
 
 define do_install_pkgconfig_file
