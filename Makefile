@@ -319,7 +319,7 @@ define build_uninstall_script
 	$(Q)$(RM) -rf $(BUILD_OUTPUT)/tmp_build
 endef
 
-build_uninstall:
+build_uninstall: $(BUILD_PREFIX)
 	$(call build_uninstall_script,install,uninstall)
 
 $(BUILD_OUTPUT)/build_uninstall: build_uninstall
@@ -332,7 +332,6 @@ endef
 
 uninstall: $(BUILD_OUTPUT)/build_uninstall
 	@$(foreach file,$(shell cat $(BUILD_OUTPUT)/build_uninstall),$(call uninstall_file,$(file)))
-	$(Q)$(RM) $<
 
 PHONY += doc
 doc:
