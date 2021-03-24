@@ -6110,7 +6110,7 @@ static void print_event_time(struct tep_handle *tep, struct trace_seq *s,
 	while (pr--)
 		p10 *= 10;
 
-	if (p10 > 1 && p10 < time)
+	if (p10 > 1)
 		trace_seq_printf(s, "%5llu.%0*llu", time / p10, prec, time % p10);
 	else
 		trace_seq_printf(s, "%12llu", time);
