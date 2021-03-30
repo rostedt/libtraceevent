@@ -2,7 +2,7 @@
 # libtraceevent version
 EP_VERSION = 1
 EP_PATCHLEVEL = 1
-EP_EXTRAVERSION = 2
+EP_EXTRAVERSION = 3
 
 MAKEFLAGS += --no-print-directory
 
