@@ -913,6 +913,57 @@ void tep_print_printk(struct tep_handle *tep)
 	}
 }
 
+/**
+ * tep_parse_printk_formats - Parse the address to strings
+ * @tep: a handle to the trace event parser
+ * @buf: A string buffer that holds the content of printk_formats and ends with '\0'
+ *
+ * This is a helper function to parse the address to printk formats in
+ * the kernel. Some events use %s to a kernel address that holds a constant
+ * string. The printk_formats file has a mapping of these addresses to the
+ * strings that are in the kernel. This parses the content of that file
+ * and registers those strings and their addresses so that the parsing of
+ * events can display the string as the event only has the address of the string.
+ *
+ * Returns 0 on success, and -1 on error.
+ */
+int tep_parse_printk_formats(struct tep_handle *tep, const char *buf)
+{
+	unsigned long long addr;
+	char *copy;
+	char *printk;
+	char *line;
+	char *next = NULL;
+	char *addr_str;
+	char *fmt;
+	int ret = -1;
+
+	copy = strdup(buf);
+	if (!copy)
+		return -1;
+
+	line = strtok_r(copy, "\n", &next);
+	while (line) {
+		addr_str = strtok_r(line, ":", &fmt);
+		if (!addr_str) {
+			tep_warning("printk format with empty entry");
+			break;
+		}
+		addr = strtoull(addr_str, NULL, 16);
+		/* fmt still has a space, skip it */
+		printk = strdup(fmt+1);
+		if (!printk)
+			goto out;
+		line = strtok_r(NULL, "\n", &next);
+		tep_register_print_string(tep, printk, addr);
+		free(printk);
+	}
+	ret = 0;
+ out:
+	free(copy);
+	return ret;
+}
+
 static struct tep_event *alloc_event(void)
 {
 	return calloc(1, sizeof(struct tep_event));

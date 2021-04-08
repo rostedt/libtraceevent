@@ -3,7 +3,7 @@ libtraceevent(3)
 
 NAME
 ----
-tep_parse_saved_cmdlines, tep_parse_kallsyms
+tep_parse_saved_cmdlines, tep_parse_printk_formats, tep_parse_kallsyms
 - Parsing functions to load mappings
 
 SYNOPSIS
@@ -13,6 +13,7 @@ SYNOPSIS
 *#include <event-parse.h>*
 
 int *tep_parse_saved_cmdlines*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
+int *tep_parse_printk_formats*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
 int *tep_parse_kallsyms*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
 --
 
@@ -25,6 +26,14 @@ _tep_ handler. The events store the pid and this is used to be able to show the
 process names associated to those process ids. It parses the string _buf_ that
 holds the content of saved_cmdlines and ends with a nul character ('\0').
 
+*tep_parse_printk_formats* is a helper function to parse content in the tracefs
+file system of the "printk_formats" file (stored in a string buffer passed in by _buf_)
+and loads the mapping of addresses of strings that may be referenced by events.
+Events only store the address of constant strings in the kernel, and the mapping
+of their address to the string is exported to user space in the printk_formats
+file. It parses the string _buf_ that holds the content of printk_formats and
+ends with a nul character ('\0').
+
 *tep_parse_kallsyms* is a helper function to parse the Linux kernel /proc/kallsyms format
 (stored in a string buffer passed in by _buf_) and load the functions into the
 _tep_ handler such that function IP addresses can be mapped to their name when
@@ -34,6 +43,9 @@ holds the content of /proc/kallsyms and ends with a nul character ('\0').
 RETURN VALUE
 ------------
 The *tep_parse_saved_cmdlines*() function returns 0 in case of success, or -1
+in case of an error.
+
+The *tep_parse_printk_formats*() function returns 0 in case of success, or -1
 in case of an error.
 
 The *tep_parse_kallsyms*() function returns 0 in case of success, or -1
@@ -57,6 +69,19 @@ int load_cmdlines(struct tep_handle *tep)
         if (!buf)
                 return -1;
         r = tep_parse_saved_cmdlines(tep, buf);
+        free(buf);
+        return r;
+}
+
+int load_print_strings(struct tep_handle *tep)
+{
+        char *buf = NULL;
+        int r;
+
+        buf = tracefs_instance_file_read(NULL, "printk_formats", NULL);
+        if (!buf)
+                return -1;
+        r = tep_parse_printk_formats(tep, buf);
         free(buf);
         return r;
 }
@@ -101,7 +126,8 @@ FILES
 
 SEE ALSO
 --------
-_libtraceevent(3)_, _trace-cmd(1)_, _tep_register_comm(3)_, _tep_register_function(3)_
+_libtraceevent(3)_, _trace-cmd(1)_, _tep_register_comm(3)_, _tep_register_function(3)_,
+_tep_register_print_string_(3)
 
 AUTHOR
 ------
