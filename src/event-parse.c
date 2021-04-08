@@ -641,6 +641,74 @@ out_free:
 }
 
 /**
+ * tep_parse_kallsyms - load functions from a read of /proc/kallsyms
+ * @tep: a handle to the trace event parser
+ * @kallsyms: A string buffer that holds the content of /proc/kallsyms and ends with '\0'
+ *
+ * This is a helper function to parse the Linux kernel /proc/kallsyms
+ * format (stored in a string buffer) and load the functions into
+ * the @tep handler such that function IP addresses can be mapped to
+ * their name when parsing events with %pS in the print format field.
+ *
+ * Returns 0 on success, and -1 on error.
+ */
+int tep_parse_kallsyms(struct tep_handle *tep, const char *kallsyms)
+{
+	unsigned long long addr;
+	char *copy;
+	char *func;
+	char *line;
+	char *next = NULL;
+	char *mod;
+	char ch;
+	int ret = -1;
+
+	copy = strdup(kallsyms);
+	if (!copy)
+		return -1;
+
+	line = strtok_r(copy, "\n", &next);
+	while (line) {
+		int func_start, func_end = 0;
+		int mod_start, mod_end = 0;
+		int n;
+
+		mod = NULL;
+		errno = 0;
+		n = sscanf(line, "%16llx %c %n%*s%n%*1[\t][%n%*s%n",
+			   &addr, &ch, &func_start, &func_end, &mod_start, &mod_end);
+		if (errno)
+			goto out;
+
+		if (n != 2 || !func_end)
+			goto out;
+
+		func = line + func_start;
+		/*
+		 * Hacks for
+		 *  - arm arch that adds a lot of bogus '$a' functions
+		 *  - x86-64 that reports per-cpu variable offsets as absolute
+		 */
+		if (func[0] != '$' && ch != 'A' && ch != 'a') {
+			line[func_end] = 0;
+			if (mod_end) {
+				mod = line + mod_start;
+				/* truncate the extra ']' */
+				line[mod_end - 1] = 0;
+			}
+			tep_register_function(tep, func, addr, mod);
+		}
+
+		line = strtok_r(NULL, "\n", &next);
+	}
+	ret = 0;
+ out:
+	free(copy);
+
+	return ret;
+}
+
+/**
  * tep_print_funcs - print out the stored functions
  * @tep: a handle to the trace event parser context
  *
