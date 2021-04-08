@@ -39,19 +39,19 @@ static int show_warning = 1;
 #define do_warning(fmt, ...)				\
 	do {						\
 		if (show_warning)			\
-			warning(fmt, ##__VA_ARGS__);	\
+			tep_warning(fmt, ##__VA_ARGS__);\
 	} while (0)
 
-#define do_warning_event(event, fmt, ...)			\
-	do {							\
-		if (!show_warning)				\
-			continue;				\
-								\
-		if (event)					\
-			warning("[%s:%s] " fmt, event->system,	\
-				event->name, ##__VA_ARGS__);	\
-		else						\
-			warning(fmt, ##__VA_ARGS__);		\
+#define do_warning_event(event, fmt, ...)				\
+	do {								\
+		if (!show_warning)					\
+			continue;					\
+									\
+		if (event)						\
+			tep_warning("[%s:%s] " fmt, event->system,	\
+				    event->name, ##__VA_ARGS__);	\
+		else							\
+			tep_warning(fmt, ##__VA_ARGS__);		\
 	} while (0)
 
 /**

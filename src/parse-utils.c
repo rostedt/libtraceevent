@@ -11,33 +11,26 @@
 
 #define __weak __attribute__((weak))
 
-void __vwarning(const char *fmt, va_list ap)
+int __weak tep_vwarning(const char *name, const char *fmt, va_list ap)
 {
+	int ret = errno;
+
 	if (errno)
-		perror("libtraceevent");
-	errno = 0;
+		perror(name);
 
 	fprintf(stderr, "  ");
 	vfprintf(stderr, fmt, ap);
-
 	fprintf(stderr, "\n");
+
+	return ret;
 }
 
-void __warning(const char *fmt, ...)
+void __weak tep_warning(const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap, fmt);
-	__vwarning(fmt, ap);
-	va_end(ap);
-}
-
-void __weak warning(const char *fmt, ...)
-{
-	va_list ap;
-
-	va_start(ap, fmt);
-	__vwarning(fmt, ap);
+	tep_vwarning("libtraceevent", fmt, ap);
 	va_end(ap);
 }
 

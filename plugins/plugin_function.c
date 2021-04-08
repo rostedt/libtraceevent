@@ -65,7 +65,7 @@ static void add_child(struct func_stack *stack, const char *child, int pos)
 		ptr = realloc(stack->stack, sizeof(char *) *
 			      (stack->size + STK_BLK));
 		if (!ptr) {
-			warning("could not allocate plugin memory\n");
+			tep_warning("could not allocate plugin memory\n");
 			return;
 		}
 
@@ -91,7 +91,7 @@ static int add_and_get_index(const char *parent, const char *child, int cpu)
 
 		ptr = realloc(fstack, sizeof(*fstack) * (cpu + 1));
 		if (!ptr) {
-			warning("could not allocate plugin memory\n");
+			tep_warning("could not allocate plugin memory\n");
 			return 0;
 		}
 
