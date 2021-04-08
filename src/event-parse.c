@@ -387,6 +387,48 @@ int tep_override_comm(struct tep_handle *tep, const char *comm, int pid)
 	return _tep_register_comm(tep, comm, pid, true);
 }
 
+/**
+ * tep_parse_saved_cmdlines - parse the comms from the saved_cmdlines file
+ * @tep: a handle to the trace event parser
+ * @buf: A string buffer that holds the content of saved_cmdlines and ends with '\0'
+ *
+ * This is a helper function to parse the comms in the tracefs saved_cmdlines
+ * file (stored in a string buffer) and load the comms into the @tep handler
+ * such that comm name matches an process ID (pid). This is used to show
+ * the names of the processes as the events only hold the pid.
+ *
+ * Returns 0 on success, and -1 on error.
+ */
+int tep_parse_saved_cmdlines(struct tep_handle *tep, const char *buf)
+{
+	char *copy;
+	char *comm;
+	char *line;
+	char *next = NULL;
+	int pid;
+	int ret = -1;
+	int n;
+
+	copy = strdup(buf);
+	if (!copy)
+		return -1;
+
+	line = strtok_r(copy, "\n", &next);
+	while (line) {
+		errno = 0;
+		n = sscanf(line, "%d %m[^\n]s", &pid, &comm);
+		if (errno || n != 2 || !comm)
+			goto out;
+		tep_register_comm(tep, comm, pid);
+		free(comm);
+		line = strtok_r(NULL, "\n", &next);
+	}
+	ret = 0;
+ out:
+	free(copy);
+	return ret;
+}
+
 struct func_map {
 	unsigned long long		addr;
 	char				*func;
