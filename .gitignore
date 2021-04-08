@@ -2,3 +2,8 @@
 TRACEEVENT-CFLAGS
 libtraceevent-dynamic-list
 libtraceevent.so.*
+*.o
+build_prefix
+build_uninstall
+*~
+\#*\#
