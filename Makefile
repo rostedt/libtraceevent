@@ -273,7 +273,7 @@ define do_make_pkgconfig_file
 	sed -i "s|HEADER_DIR|$(includedir_relative)|g" ${PKG_CONFIG_FILE};
 endef
 
-$(PKG_CONFIG_FILE) : ${PKG_CONFIG_SOURCE_FILE}.template $(BUILD_PREFIX)
+$(PKG_CONFIG_FILE) : ${PKG_CONFIG_SOURCE_FILE}.template $(BUILD_PREFIX) $(VERSION_FILES)
 	$(QUIET_GEN) $(call do_make_pkgconfig_file,$(prefix))
 
 define do_install_pkgconfig_file

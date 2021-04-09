@@ -10,3 +10,4 @@ build_uninstall
 *.cmd
 *.so
 .*.d
+ep_version.h
