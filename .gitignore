@@ -7,3 +7,6 @@ build_prefix
 build_uninstall
 *~
 \#*\#
+*.cmd
+*.so
+.*.d
