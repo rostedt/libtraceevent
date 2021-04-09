@@ -290,16 +290,17 @@ ifeq ("$(DESTDIR)", "")
 # and running ldconfig, if the library is visible by ld.so.
 # If not, add the path to /etc/ld.so.conf.d/trace.conf and run ldconfig again.
 define install_ld_config
-	$(LDCONFIG); \
-	if ! grep "^$(libdir)$$" $(LD_SO_CONF_PATH)/* &> /dev/null ; then \
-		$(CC) -o $(OUTPUT)test $(srctree)/test.c -I $(includedir_SQ) \
-			-L $(libdir_SQ) -ltraceevent &>/dev/null; \
-		if ! $(OUTPUT)test &> /dev/null; then \
-			$(call PRINT_INSTALL, trace.conf) \
-			echo $(libdir_SQ) >> $(LD_SO_CONF_PATH)/trace.conf; \
-			$(LDCONFIG); \
+	if $(LDCONFIG); then \
+		if ! grep -q "^$(libdir)$$" $(LD_SO_CONF_PATH)/* ; then \
+			$(CC) -o $(OUTPUT)test $(srctree)/test.c -I $(includedir_SQ) \
+				-L $(libdir_SQ) -ltraceevent &>/dev/null; \
+			if ! $(OUTPUT)test &> /dev/null; then \
+				$(call PRINT_INSTALL, trace.conf) \
+				echo $(libdir_SQ) >> $(LD_SO_CONF_PATH)/trace.conf; \
+				$(LDCONFIG); \
+			fi; \
+			$(RM) $(OUTPUT)test; \
 		fi; \
-		$(RM) $(OUTPUT)test; \
 	fi
 endef
 else
