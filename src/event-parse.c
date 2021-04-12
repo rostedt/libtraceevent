@@ -931,11 +931,11 @@ void tep_print_printk(struct tep_handle *tep)
 int tep_parse_printk_formats(struct tep_handle *tep, const char *buf)
 {
 	unsigned long long addr;
-	char *copy;
-	char *printk;
-	char *line;
-	char *next = NULL;
 	char *addr_str;
+	char *printk;
+	char *copy;
+	char *line;
+	char *next;
 	char *fmt;
 	int ret = -1;
 
