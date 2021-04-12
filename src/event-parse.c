@@ -743,6 +743,7 @@ int tep_parse_kallsyms(struct tep_handle *tep, const char *kallsyms)
 
 		line = strtok_r(NULL, "\n", &next);
 	}
+	free(line);
 	ret = 0;
  out:
 	free(copy);
