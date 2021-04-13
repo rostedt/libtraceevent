@@ -10,6 +10,11 @@
 #include "event-utils.h"
 #include "trace-seq.h"
 
+#define __weak __attribute__((weak))
+
+/* Export this for applications to override it */
+__weak const char *tep_func_repeat_format = "%6.1000d";
+
 static struct func_stack {
 	int size;
 	char **stack;
@@ -169,6 +174,36 @@ static int function_handler(struct trace_seq *s, struct tep_record *record,
 	return 0;
 }
 
+static int trace_func_repeat_handler(struct trace_seq *s, struct tep_record *record,
+				    struct tep_event *event, void *context)
+{
+	struct tep_handle *tep = event->tep;
+	unsigned long long count, top_delta, bottom_delta;
+	struct tep_record dummy;
+
+	function_handler(s, record, event, context);
+
+	if (tep_get_field_val(s, event, "count", record, &count, 1))
+		return trace_seq_putc(s, '!');
+
+	if (tep_get_field_val(s, event, "top_delta_ts", record, &top_delta, 1))
+		return trace_seq_putc(s, '!');
+
+	if (tep_get_field_val(s, event, "bottom_delta_ts", record, &bottom_delta, 1))
+		return trace_seq_putc(s, '!');
+
+	trace_seq_printf(s, " (count: %lld  last_ts: ", count);
+
+	memcpy(&dummy, record, sizeof(dummy));
+	dummy.ts -= (top_delta << 32) | bottom_delta;
+
+	tep_print_event(tep, s, &dummy, tep_func_repeat_format, TEP_PRINT_TIME);
+
+	trace_seq_puts(s, ")");
+
+	return 0;
+}
+
 static int
 trace_stack_handler(struct trace_seq *s, struct tep_record *record,
 		    struct tep_event *event, void *context)
@@ -255,6 +290,9 @@ int TEP_PLUGIN_LOADER(struct tep_handle *tep)
 
 	tep_register_event_handler(tep, -1, "ftrace", "raw_data",
 				      trace_raw_data_handler, NULL);
+
+	tep_register_event_handler(tep, -1, "ftrace", "func_repeats",
+				      trace_func_repeat_handler, NULL);
 
 	tep_plugin_add_options("ftrace", plugin_options);
 
