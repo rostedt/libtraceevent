@@ -127,6 +127,9 @@ Endian related APIs:
 	bool *tep_is_local_bigendian*(struct tep_handle pass:[*]_tep_);
 	void *tep_set_local_bigendian*(struct tep_handle pass:[*]_tep_, enum tep_endian _endian_);
 
+Control library logs:
+	int *tep_set_loglevel*(enum tep_loglevel _level_);
+
 Trace sequences:
 *#include <trace-seq.h>*
 	void *trace_seq_init*(struct trace_seq pass:[*]_s_);
