@@ -6927,8 +6927,8 @@ static int find_event_handle(struct tep_handle *tep, struct tep_event *event)
 	if (!(*next))
 		return 0;
 
-	pr_stat("overriding event (%d) %s:%s with new print handler",
-		event->id, event->system, event->name);
+	tep_info("overriding event (%d) %s:%s with new print handler",
+		 event->id, event->system, event->name);
 
 	event->handler = handle->func;
 	event->context = handle->context;
@@ -7404,7 +7404,7 @@ int tep_register_print_function(struct tep_handle *tep,
 		 * plugins updating the function. This overrides the
 		 * system defaults.
 		 */
-		pr_stat("override of function helper '%s'", name);
+		tep_info("override of function helper '%s'", name);
 		remove_func_handler(tep, name);
 	}
 
@@ -7542,8 +7542,8 @@ int tep_register_event_handler(struct tep_handle *tep, int id,
 	if (event == NULL)
 		goto not_found;
 
-	pr_stat("overriding event (%d) %s:%s with new print handler",
-		event->id, event->system, event->name);
+	tep_info("overriding event (%d) %s:%s with new print handler",
+		 event->id, event->system, event->name);
 
 	event->handler = func;
 	event->context = context;
@@ -7628,8 +7628,8 @@ int tep_unregister_event_handler(struct tep_handle *tep, int id,
 		goto not_found;
 
 	if (event->handler == func && event->context == context) {
-		pr_stat("removing override handler for event (%d) %s:%s. Going back to default handler.",
-			event->id, event->system, event->name);
+		tep_info("removing override handler for event (%d) %s:%s. Going back to default handler.",
+			 event->id, event->system, event->name);
 
 		event->handler = NULL;
 		event->context = NULL;

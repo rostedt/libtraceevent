@@ -9,15 +9,10 @@
 #include <ctype.h>
 #include <stdarg.h>
 
+void tep_info(const char *fmt, ...);
 /* Can be overridden */
 void tep_warning(const char *fmt, ...);
 int tep_vwarning(const char *name, const char *fmt, va_list ap);
-void pr_stat(const char *fmt, ...);
-void vpr_stat(const char *fmt, va_list ap);
-
-/* Always available */
-void __pr_stat(const char *fmt, ...);
-void __vpr_stat(const char *fmt, ...);
 
 #define min(x, y) ({				\
 	typeof(x) _min1 = (x);			\

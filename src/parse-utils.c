@@ -50,31 +50,15 @@ void __weak tep_warning(const char *fmt, ...)
 	va_end(ap);
 }
 
-void __vpr_stat(const char *fmt, va_list ap)
-{
-	vprintf(fmt, ap);
-	printf("\n");
-}
 
-void __pr_stat(const char *fmt, ...)
+void tep_info(const char *fmt, ...)
 {
 	va_list ap;
 
-	va_start(ap, fmt);
-	__vpr_stat(fmt, ap);
-	va_end(ap);
-}
-
-void __weak vpr_stat(const char *fmt, va_list ap)
-{
-	__vpr_stat(fmt, ap);
-}
-
-void __weak pr_stat(const char *fmt, ...)
-{
-	va_list ap;
+	if (log_level < TEP_LOG_INFO)
+		return;
 
 	va_start(ap, fmt);
-	__vpr_stat(fmt, ap);
+	tep_vwarning("libtraceevent", fmt, ap);
 	va_end(ap);
 }
