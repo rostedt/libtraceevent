@@ -24,11 +24,28 @@ void tep_set_loglevel(enum tep_loglevel level)
 	log_level = level;
 }
 
-int __weak tep_vwarning(const char *name, const char *fmt, va_list ap)
+/**
+ * tep_vprint - print library log messages
+ * @name: name of the library.
+ * @level: severity of the log message. This parameter is not used in this implementation, but as
+ *	   the function is weak and can be overridden, having the log level could be useful
+ *	   for other implementations.
+ * @print_err: whether to print the errno, if non zero.
+ * @fmt: printf format string of the message.
+ * @ap: list of printf parameters.
+ *
+ * This function is used to print all messages from traceevent, tracefs and trace-cmd libraries.
+ * It is defined as weak, so the application that uses those libraries can override it in order
+ * to implement its own logic for printing library logs.
+ *
+ * Return the value of errno at the function enter.
+ */
+int __weak tep_vprint(const char *name, enum tep_loglevel level,
+		      bool print_err, const char *fmt, va_list ap)
 {
 	int ret = errno;
 
-	if (errno)
+	if (errno && print_err)
 		perror(name);
 
 	fprintf(stderr, "  ");
@@ -38,7 +55,7 @@ int __weak tep_vwarning(const char *name, const char *fmt, va_list ap)
 	return ret;
 }
 
-void __weak tep_warning(const char *fmt, ...)
+void tep_warning(const char *fmt, ...)
 {
 	va_list ap;
 
@@ -46,7 +63,7 @@ void __weak tep_warning(const char *fmt, ...)
 		return;
 
 	va_start(ap, fmt);
-	tep_vwarning("libtraceevent", fmt, ap);
+	tep_vprint("libtraceevent", TEP_LOG_WARNING, true, fmt, ap);
 	va_end(ap);
 }
 
@@ -59,6 +76,6 @@ void tep_info(const char *fmt, ...)
 		return;
 
 	va_start(ap, fmt);
-	tep_vwarning("libtraceevent", fmt, ap);
+	tep_vprint("libtraceevent", TEP_LOG_INFO, false, fmt, ap);
 	va_end(ap);
 }

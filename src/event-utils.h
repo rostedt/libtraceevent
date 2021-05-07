@@ -8,11 +8,13 @@
 
 #include <ctype.h>
 #include <stdarg.h>
+#include <stdbool.h>
 
+void tep_warning(const char *fmt, ...);
 void tep_info(const char *fmt, ...);
 /* Can be overridden */
-void tep_warning(const char *fmt, ...);
-int tep_vwarning(const char *name, const char *fmt, va_list ap);
+int tep_vprint(const char *name, enum tep_loglevel level,
+	       bool print_err, const char *fmt, va_list ap);
 
 #define min(x, y) ({				\
 	typeof(x) _min1 = (x);			\
