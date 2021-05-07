@@ -9,7 +9,20 @@
 #include <stdarg.h>
 #include <errno.h>
 
+#include "event-parse.h"
+
 #define __weak __attribute__((weak))
+
+static int log_level = TEP_LOG_CRITICAL;
+
+/**
+ * tep_set_loglevel - set log level of the library
+ * @level: desired level of the library messages
+ */
+void tep_set_loglevel(enum tep_loglevel level)
+{
+	log_level = level;
+}
 
 int __weak tep_vwarning(const char *name, const char *fmt, va_list ap)
 {
@@ -28,6 +41,9 @@ int __weak tep_vwarning(const char *name, const char *fmt, va_list ap)
 void __weak tep_warning(const char *fmt, ...)
 {
 	va_list ap;
+
+	if (log_level < TEP_LOG_WARNING)
+		return;
 
 	va_start(ap, fmt);
 	tep_vwarning("libtraceevent", fmt, ap);

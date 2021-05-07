@@ -749,4 +749,16 @@ int tep_filter_copy(struct tep_event_filter *dest, struct tep_event_filter *sour
 
 int tep_filter_compare(struct tep_event_filter *filter1, struct tep_event_filter *filter2);
 
+/* Control library logs */
+enum tep_loglevel {
+	TEP_LOG_NONE = 0,
+	TEP_LOG_CRITICAL,
+	TEP_LOG_ERROR,
+	TEP_LOG_WARNING,
+	TEP_LOG_INFO,
+	TEP_LOG_DEBUG,
+	TEP_LOG_ALL
+};
+void tep_set_loglevel(enum tep_loglevel level);
+
 #endif /* _PARSE_EVENTS_H */
