@@ -79,3 +79,19 @@ void tep_info(const char *fmt, ...)
 	tep_vprint("libtraceevent", TEP_LOG_INFO, false, fmt, ap);
 	va_end(ap);
 }
+
+/* The below is for backward compatibility */
+int __weak tep_vwarning(const char *name, const char *fmt, va_list ap)
+{
+	return tep_vprint(name, TEP_LOG_WARNING, true, fmt, ap);
+}
+
+void pr_stat(const char *fmt, ...) __attribute__((weak, alias("tep_info")));
+void __pr_stat(const char *fmt, ...) __attribute__((weak, alias("tep_info")));
+
+void __weak __vpr_stat(const char *fmt, va_list ap)
+{
+	tep_vprint("libtraceevent", TEP_LOG_INFO, false, fmt, ap);
+}
+
+void vpr_stat(const char *fmt, va_list ap) __attribute__((weak, alias("__vpr_stat")));
