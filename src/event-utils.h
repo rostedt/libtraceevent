@@ -3,8 +3,8 @@
  * Copyright (C) 2010 Red Hat Inc, Steven Rostedt <srostedt@redhat.com>
  *
  */
-#ifndef __UTIL_H
-#define __UTIL_H
+#ifndef __TEP_EVENT_UTIL_H
+#define __TEP_EVENT_UTIL_H
 
 #include <ctype.h>
 #include <stdarg.h>

@@ -3,8 +3,8 @@
  * Copyright (C) 2009, 2010 Red Hat Inc, Steven Rostedt <srostedt@redhat.com>
  *
  */
-#ifndef _PARSE_EVENTS_H
-#define _PARSE_EVENTS_H
+#ifndef __TEP_PARSE_EVENTS_H
+#define __TEP_PARSE_EVENTS_H
 
 #include <stdbool.h>
 #include <stdarg.h>
