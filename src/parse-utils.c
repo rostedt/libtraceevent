@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <errno.h>
 
+#include "event-utils.h"
 #include "event-parse.h"
 
 #define __weak __attribute__((weak))
@@ -41,6 +42,28 @@ void tep_set_loglevel(enum tep_loglevel level)
  * Return the value of errno at the function enter.
  */
 int __weak tep_vprint(const char *name, enum tep_loglevel level,
+		      bool print_err, const char *fmt, va_list ap)
+{
+	return __tep_vprint(name, level, print_err, fmt, ap);
+}
+
+/**
+ * __tep_vprint - print library log messages
+ * @name: name of the library.
+ * @level: severity of the log message. This parameter is not used in this implementation, but as
+ *	   the function is weak and can be overridden, having the log level could be useful
+ *	   for other implementations.
+ * @print_err: whether to print the errno, if non zero.
+ * @fmt: printf format string of the message.
+ * @ap: list of printf parameters.
+ *
+ * This function is used to print all messages from traceevent, tracefs and trace-cmd libraries.
+ * It is defined as weak, so the application that uses those libraries can override it in order
+ * to implement its own logic for printing library logs.
+ *
+ * Return the value of errno at the function enter.
+ */
+int __tep_vprint(const char *name, enum tep_loglevel level,
 		      bool print_err, const char *fmt, va_list ap)
 {
 	int ret = errno;

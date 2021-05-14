@@ -14,9 +14,15 @@
 
 void tep_warning(const char *fmt, ...);
 void tep_info(const char *fmt, ...);
+
 /* Can be overridden */
 int tep_vprint(const char *name, enum tep_loglevel level,
 	       bool print_err, const char *fmt, va_list ap);
+
+/* The actual call of tep_vprint() for overrides to use */
+int __tep_vprint(const char *name, enum tep_loglevel level,
+		 bool print_err, const char *fmt, va_list ap);
+
 
 #define __deprecated(msg) __attribute__((deprecated("msg")))
 
