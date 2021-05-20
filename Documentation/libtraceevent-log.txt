@@ -31,7 +31,7 @@ on the console. Library log levels are:
 [verse]
 --
 	_TEP_LOG_NONE_ - Do not print any logs.
-	_TEP_LOG_CRITICAL_ - Print critical logs, problem that may case a crash.
+	_TEP_LOG_CRITICAL_ - Print critical logs, problem that may cause a crash.
 	_TEP_LOG_ERROR_ - Print error logs, problem that could break the main logic of an API.
 	_TEP_LOG_WARNING_ - Print warnings, problem that could limit the result of an API.
 	_TEP_LOG_INFO_ - Print information about normal execution of an API.
