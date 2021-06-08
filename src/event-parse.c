@@ -2311,8 +2311,19 @@ process_entry(struct tep_event *event __maybe_unused, struct tep_print_arg *arg,
 	char *field;
 	char *token;
 
-	if (read_expected(TEP_EVENT_OP, "->") < 0)
-		goto out_err;
+	type = read_token_item(&token);
+	/*
+	 * Check if REC happens to be surrounded by parenthesis, and
+	 * return if that's the case, as "(REC)->" is valid.
+	 * but return TEP_EVENT_ITEM.
+	 */
+	if (type == TEP_EVENT_DELIM && strcmp(token, ")") == 0) {
+		*tok = token;
+		return TEP_EVENT_ITEM;
+	}
+
+	if (test_type_token(type, token,  TEP_EVENT_OP, "->"))
+		goto out_free;
 
 	if (read_expect_type(TEP_EVENT_ITEM, &token) < 0)
 		goto out_free;
@@ -2338,7 +2349,6 @@ process_entry(struct tep_event *event __maybe_unused, struct tep_print_arg *arg,
 
  out_free:
 	free_token(token);
- out_err:
 	*tok = NULL;
 	return TEP_EVENT_ERROR;
 }
@@ -3032,6 +3042,17 @@ process_paren(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 
 	if (type == TEP_EVENT_ERROR)
 		goto out_free;
+
+	/*
+	 * If REC is surrounded by parenthesis, the process_arg()
+	 * will return TEP_EVENT_ITEM with token == ")". In
+	 * this case, we need to continue processing the item
+	 * and return.
+	 */
+	if (type == TEP_EVENT_ITEM && strcmp(token, ")") == 0) {
+		free_token(token);
+		return process_entry(event, arg, tok);
+	}
 
 	if (test_type_token(type, token, TEP_EVENT_DELIM, ")"))
 		goto out_free;
