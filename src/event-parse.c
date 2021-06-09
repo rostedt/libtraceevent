@@ -2039,7 +2039,7 @@ out_free:
 
 static int get_op_prio(char *op)
 {
-	if (!op[1]) {
+	if (strlen(op) == 1) {
 		switch (op[0]) {
 		case '~':
 		case '!':
@@ -2117,10 +2117,6 @@ process_op(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 
 	if (arg->type == TEP_PRINT_OP && !arg->op.left) {
 		/* handle single op */
-		if (token[1]) {
-			do_warning_event(event, "bad op token %s", token);
-			goto out_free;
-		}
 		switch (token[0]) {
 		case '~':
 		case '!':
@@ -2131,6 +2127,10 @@ process_op(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 			do_warning_event(event, "bad op token %s", token);
 			goto out_free;
 
+		}
+		if (token[1]) {
+			do_warning_event(event, "bad op token %s", token);
+			goto out_free;
 		}
 
 		/* make an empty left */
