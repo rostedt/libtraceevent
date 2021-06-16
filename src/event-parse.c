@@ -4426,6 +4426,7 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 		break;
 	case TEP_PRINT_STRING: {
 		int str_offset;
+		int len;
 
 		if (arg->string.offset == -1) {
 			struct tep_format_field *f;
@@ -4434,6 +4435,10 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 			arg->string.offset = f->offset;
 		}
 		str_offset = data2host4(tep, *(unsigned int *)(data + arg->string.offset));
+		len = (str_offset >> 16) & 0xffff;
+		/* Do not attempt to save zero length dynamic strings */
+		if (!len)
+			break;
 		str_offset &= 0xffff;
 		print_str_to_seq(s, format, len_arg, ((char *)data) + str_offset);
 		break;
