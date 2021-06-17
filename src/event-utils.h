@@ -10,7 +10,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 
-#include <event-parse.h>
+#include "event-parse.h"
 
 void tep_warning(const char *fmt, ...);
 void tep_info(const char *fmt, ...);
