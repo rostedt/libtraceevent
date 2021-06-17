@@ -1155,17 +1155,16 @@ static enum tep_event_type force_token(const char *str, char **tok);
 static enum tep_event_type __read_token(char **tok)
 {
 	char buf[BUFSIZ];
-	int ch, last_ch, quote_ch, next_ch;
+	int ch, last_ch, quote_ch, next_ch, read_ch, peek_ch;
 	int i = 0;
 	int tok_size = 0;
 	enum tep_event_type type;
 
 	*tok = NULL;
 
-
-	ch = __read_char();
+        ch = __read_char();
 	if (ch < 0)
-		return TEP_EVENT_NONE;
+		goto out_eof_error;
 
 	type = get_type(ch);
 	if (type == TEP_EVENT_NONE)
@@ -1184,9 +1183,15 @@ static enum tep_event_type __read_token(char **tok)
 	case TEP_EVENT_OP:
 		switch (ch) {
 		case '-':
-			next_ch = peek_char();
+			peek_ch = peek_char();
+			if (peek_ch < 0)
+				goto out_eof_error;
+			next_ch = peek_ch;
 			if (next_ch == '>') {
-				buf[i++] = __read_char();
+				read_ch = __read_char();
+				if (read_ch < 0)
+					goto out_eof_error;
+				buf[i++] = read_ch;
 				break;
 			}
 			/* fall through */
@@ -1197,9 +1202,14 @@ static enum tep_event_type __read_token(char **tok)
 		case '<':
 			last_ch = ch;
 			ch = peek_char();
+			if (ch < 0)
+				goto out_eof_error;
 			if (ch != last_ch)
 				goto test_equal;
-			buf[i++] = __read_char();
+			read_ch = __read_char();
+			if (read_ch < 0)
+				goto out_eof_error;
+			buf[i++] = read_ch;
 			switch (last_ch) {
 			case '>':
 			case '<':
@@ -1219,10 +1229,17 @@ static enum tep_event_type __read_token(char **tok)
 		return type;
 
  test_equal:
-		ch = peek_char();
-		if (ch == '=')
-			buf[i++] = __read_char();
-		goto out;
+		peek_ch = peek_char();
+		if (peek_ch < 0)
+			goto out_eof_error;
+		ch = peek_ch;
+		if (ch == '=') {
+			read_ch = __read_char();
+			if (read_ch < 0)
+				goto out_eof_error;
+			buf[i++] = read_ch;
+			goto out;
+		}
 
 	case TEP_EVENT_DQUOTE:
 	case TEP_EVENT_SQUOTE:
@@ -1242,6 +1259,8 @@ static enum tep_event_type __read_token(char **tok)
 			}
 			last_ch = ch;
 			ch = __read_char();
+			if(ch < 0)
+				goto out_eof_error;
 			buf[i++] = ch;
 			/* the '\' '\' will cancel itself */
 			if (ch == '\\' && last_ch == '\\')
@@ -1259,6 +1278,8 @@ static enum tep_event_type __read_token(char **tok)
 
 			do {
 				ch = __read_char();
+				if(ch < 0)
+					return TEP_EVENT_NONE;
 			} while (isspace(ch));
 			if (ch == '"')
 				goto concat;
@@ -1273,7 +1294,13 @@ static enum tep_event_type __read_token(char **tok)
 		break;
 	}
 
-	while (get_type(peek_char()) == type) {
+	while (1) {
+		peek_ch = peek_char();
+		if (peek_ch < 0)
+			goto out_eof_error;
+		if (get_type(peek_ch) != type)
+			break;
+
 		if (i == (BUFSIZ - 1)) {
 			buf[i] = 0;
 			tok_size += BUFSIZ;
@@ -1282,8 +1309,10 @@ static enum tep_event_type __read_token(char **tok)
 				return TEP_EVENT_NONE;
 			i = 0;
 		}
-		ch = __read_char();
-		buf[i++] = ch;
+		read_ch = __read_char();
+		if (read_ch < 0)
+			goto out_eof_error;
+		buf[i++] = read_ch;
 	}
 
  out:
@@ -1316,6 +1345,11 @@ static enum tep_event_type __read_token(char **tok)
 	}
 
 	return type;
+
+out_eof_error:
+	free(*tok);
+	*tok = NULL;
+	return TEP_EVENT_NONE;
 }
 
 static enum tep_event_type force_token(const char *str, char **tok)
