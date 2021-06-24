@@ -2325,6 +2325,8 @@ process_entry(struct tep_event *event __maybe_unused, struct tep_print_arg *arg,
 	if (test_type_token(type, token,  TEP_EVENT_OP, "->"))
 		goto out_free;
 
+	free_token(token);
+
 	if (read_expect_type(TEP_EVENT_ITEM, &token) < 0)
 		goto out_free;
 	field = token;
