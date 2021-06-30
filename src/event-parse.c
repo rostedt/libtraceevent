@@ -6418,17 +6418,23 @@ void tep_print_event(struct tep_handle *tep, struct trace_seq *s,
 		     struct tep_record *record, const char *fmt, ...)
 {
 	struct print_event_type type;
-	char *format = strdup(fmt);
-	char *current = format;
-	char *str = format;
+	struct tep_event *event;
+	char *current;
+	char *format;
+	char *str;
 	int offset;
 	va_list args;
-	struct tep_event *event;
 
+	event = tep_find_event_by_record(tep, record);
+	if (!event) {
+		trace_seq_printf(s, "[UNKNOWN EVENT]");
+		return;
+	}
+
+	str = current = format = strdup(fmt);
 	if (!format)
 		return;
 
-	event = tep_find_event_by_record(tep, record);
 	va_start(args, fmt);
 	while (*current) {
 		current = strchr(str, '%');
