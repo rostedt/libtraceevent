@@ -67,13 +67,13 @@ static int sched_wakeup_handler(struct trace_seq *s,
 	}
 	trace_seq_printf(s, "%lld", val);
 
-	if (tep_get_field_val(s, event, "prio", record, &val, 0) == 0)
+	if (tep_get_field_val(s, event, "prio", record, &val, 1) == 0)
 		trace_seq_printf(s, " [%lld]", val);
 
-	if (tep_get_field_val(s, event, "success", record, &val, 1) == 0)
+	if (tep_get_field_val(s, event, "success", record, &val, 0) == 0)
 		trace_seq_printf(s, " success=%lld", val);
 
-	if (tep_get_field_val(s, event, "target_cpu", record, &val, 0) == 0)
+	if (tep_get_field_val(s, event, "target_cpu", record, &val, 1) == 0)
 		trace_seq_printf(s, " CPU:%03llu", val);
 
 	return 0;
@@ -96,10 +96,10 @@ static int sched_switch_handler(struct trace_seq *s,
 	}
 	trace_seq_printf(s, "%lld ", val);
 
-	if (tep_get_field_val(s, event, "prev_prio", record, &val, 0) == 0)
+	if (tep_get_field_val(s, event, "prev_prio", record, &val, 1) == 0)
 		trace_seq_printf(s, "[%d] ", (int) val);
 
-	if (tep_get_field_val(s,  event, "prev_state", record, &val, 0) == 0)
+	if (tep_get_field_val(s,  event, "prev_state", record, &val, 1) == 0)
 		write_state(s, val);
 
 	trace_seq_puts(s, " ==> ");
@@ -114,7 +114,7 @@ static int sched_switch_handler(struct trace_seq *s,
 	}
 	trace_seq_printf(s, "%lld", val);
 
-	if (tep_get_field_val(s, event, "next_prio", record, &val, 0) == 0)
+	if (tep_get_field_val(s, event, "next_prio", record, &val, 1) == 0)
 		trace_seq_printf(s, " [%d]", (int) val);
 
 	return 0;
