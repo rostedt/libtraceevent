@@ -5391,22 +5391,25 @@ static void print_field_raw(struct trace_seq *s, void *data,
 static int print_parse_data(struct tep_print_parse *parse, struct trace_seq *s,
 			    void *data, int size, struct tep_event *event);
 
-void tep_print_field(struct trace_seq *s, void *data,
-		     struct tep_format_field *field)
+void static inline print_field(struct trace_seq *s, void *data,
+				    struct tep_format_field *field,
+				    struct tep_print_parse **parse_ptr)
 {
 	struct tep_event *event = field->event;
+	struct tep_print_parse *start_parse;
 	struct tep_print_parse *parse;
 	bool has_0x;
 
-	parse = event->print_fmt.print_cache;
+	parse = parse_ptr ? *parse_ptr : event->print_fmt.print_cache;
 
-	if (event->flags & TEP_EVENT_FL_FAILED)
+	if (!parse || event->flags & TEP_EVENT_FL_FAILED)
 		goto out;
 
 	if (field->flags & (TEP_FIELD_IS_ARRAY || TEP_FIELD_IS_STRING))
 		goto out;
 
-	for (;parse; parse = parse->next) {
+	start_parse = parse;
+	do {
 		if (parse->type == PRINT_FMT_STRING) {
 			int len = strlen(parse->format);
 
@@ -5416,37 +5419,52 @@ void tep_print_field(struct trace_seq *s, void *data,
 			else
 				has_0x = false;
 
-			continue;
+			goto next;
 		}
 
 		if (!parse->arg ||
 		    parse->arg->type != TEP_PRINT_FIELD ||
 		    parse->arg->field.field != field) {
 			has_0x = false;
-			continue;
+			goto next;
 		}
 
 		if (has_0x)
 			trace_seq_puts(s, "0x");
 
 		print_parse_data(parse, s, data, field->size, event);
+
+		if (parse_ptr)
+			*parse_ptr = parse->next;
+
 		return;
-	}
+
+ next:
+		parse = parse->next ? parse->next :
+				      event->print_fmt.print_cache;
+	} while (parse != start_parse);
 
  out:
 	/* Not found. */
 	print_field_raw(s, data, field);
 }
 
+void tep_print_field(struct trace_seq *s, void *data,
+		     struct tep_format_field *field)
+{
+	print_field(s, data, field, NULL);
+}
+
 void tep_print_fields(struct trace_seq *s, void *data,
 		      int size __maybe_unused, struct tep_event *event)
 {
+	struct tep_print_parse *parse = event->print_fmt.print_cache;
 	struct tep_format_field *field;
 
 	field = event->format.fields;
 	while (field) {
 		trace_seq_printf(s, " %s=", field->name);
-		tep_print_field(s, data, field);
+		print_field(s, data, field, &parse);
 		field = field->next;
 	}
 }
