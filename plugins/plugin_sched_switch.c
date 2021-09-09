@@ -73,7 +73,7 @@ static int sched_wakeup_handler(struct trace_seq *s,
 	if (tep_get_field_val(s, event, "success", record, &val, 0) == 0)
 		trace_seq_printf(s, " success=%lld", val);
 
-	if (tep_get_field_val(s, event, "target_cpu", record, &val, 1) == 0)
+	if (tep_get_field_val(s, event, "target_cpu", record, &val, 0) == 0)
 		trace_seq_printf(s, " CPU:%03llu", val);
 
 	return 0;
