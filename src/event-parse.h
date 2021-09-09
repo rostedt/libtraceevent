@@ -545,6 +545,13 @@ int tep_cmdline_pid(struct tep_handle *tep, struct tep_cmdline *cmdline);
 
 void tep_print_field(struct trace_seq *s, void *data,
 		     struct tep_format_field *field);
+void tep_record_print_fields(struct trace_seq *s,
+			     struct tep_record *record,
+			     struct tep_event *event);
+void tep_record_print_selected_fields(struct trace_seq *s,
+				      struct tep_record *record,
+				      struct tep_event *event,
+				      unsigned long long select_mask);
 void tep_print_fields(struct trace_seq *s, void *data,
 		      int size __maybe_unused, struct tep_event *event);
 int tep_strerror(struct tep_handle *tep, enum tep_errno errnum,

@@ -5455,18 +5455,61 @@ void tep_print_field(struct trace_seq *s, void *data,
 	print_field(s, data, field, NULL);
 }
 
-void tep_print_fields(struct trace_seq *s, void *data,
-		      int size __maybe_unused, struct tep_event *event)
+static inline void
+print_selected_fields(struct trace_seq *s, void *data,
+		      struct tep_event *event,
+		      unsigned long long ignore_mask)
 {
 	struct tep_print_parse *parse = event->print_fmt.print_cache;
 	struct tep_format_field *field;
+	unsigned long long field_mask = 1;
 
 	field = event->format.fields;
-	while (field) {
+	for(; field; field = field->next, field_mask <<= 1) {
+		if (field_mask & ignore_mask)
+			continue;
+
 		trace_seq_printf(s, " %s=", field->name);
 		print_field(s, data, field, &parse);
-		field = field->next;
 	}
+}
+
+void tep_print_fields(struct trace_seq *s, void *data,
+		      int size __maybe_unused, struct tep_event *event)
+{
+	print_selected_fields(s, data, event, 0);
+}
+
+/**
+ * tep_record_print_fields - print the field name followed by the
+ * record's field value.
+ * @s: The seq to print to
+ * @record: The record to get the event from
+ * @event: The event that the field is for
+ */
+void tep_record_print_fields(struct trace_seq *s,
+			     struct tep_record *record,
+			     struct tep_event *event)
+{
+	print_selected_fields(s, record->data, event, 0);
+}
+
+/**
+ * tep_record_print_selected_fields - print the field name followed by the
+ * record's field value for a selected subset of record fields.
+ * @s: The seq to print to
+ * @record: The record to get the event from
+ * @event: The event that the field is for
+ * @select_mask: Bit mask defining the fields to print
+ */
+void tep_record_print_selected_fields(struct trace_seq *s,
+				      struct tep_record *record,
+				      struct tep_event *event,
+				      unsigned long long select_mask)
+{
+	unsigned long long ignore_mask = ~select_mask;
+
+	print_selected_fields(s, record->data, event, ignore_mask);
 }
 
 static int print_function(struct trace_seq *s, const char *format,
