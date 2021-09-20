@@ -5405,7 +5405,7 @@ void static inline print_field(struct trace_seq *s, void *data,
 	if (!parse || event->flags & TEP_EVENT_FL_FAILED)
 		goto out;
 
-	if (field->flags & (TEP_FIELD_IS_ARRAY || TEP_FIELD_IS_STRING))
+	if (field->flags & (TEP_FIELD_IS_ARRAY | TEP_FIELD_IS_STRING))
 		goto out;
 
 	start_parse = parse;
