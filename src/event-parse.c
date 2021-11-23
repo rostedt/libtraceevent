@@ -1246,7 +1246,8 @@ static enum tep_event_type __read_token(char **tok)
 			/* the '\' '\' will cancel itself */
 			if (ch == '\\' && last_ch == '\\')
 				last_ch = 0;
-		} while (ch != quote_ch || last_ch == '\\');
+			/* Break out if the file is corrupted and giving non print chars */
+		} while ((ch != quote_ch && isprint(ch)) || last_ch == '\\');
 		/* remove the last quote */
 		i--;
 
