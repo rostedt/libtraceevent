@@ -249,6 +249,21 @@ void tep_set_page_size(struct tep_handle *tep, int _page_size)
 }
 
 /**
+ * tep_get_sub_buffer_size - get the size of a trace buffer page
+ * @tep: a handle to the tep_handle
+ *
+ * This returns the size of a trace buffer page on the traced machine.
+ * If @tep is NULL then -1 is returned.
+ */
+int tep_get_sub_buffer_size(struct tep_handle *tep)
+{
+	if (!tep)
+		return -1;
+
+	return tep->header_page_data_size + tep->header_page_data_offset;
+}
+
+/**
  * tep_is_file_bigendian - return the endian of the file
  * @tep: a handle to the tep_handle
  *

@@ -17,6 +17,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <limits.h>
 #include <linux/time64.h>
 
@@ -7029,6 +7030,7 @@ int tep_parse_header_page(struct tep_handle *tep, char *buf, unsigned long size,
 		tep->header_page_ts_size = sizeof(long long);
 		tep->header_page_size_size = long_size;
 		tep->header_page_data_offset = sizeof(long long) + long_size;
+		tep->header_page_data_size = getpagesize() - tep->header_page_data_offset;
 		tep->old_format = 1;
 		return -1;
 	}
