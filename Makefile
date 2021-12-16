@@ -117,9 +117,11 @@ N		=
 LIBTRACEEVENT_STATIC = $(bdir)/libtraceevent.a
 LIBTRACEEVENT_SHARED = $(bdir)/libtraceevent.so.$(EVENT_PARSE_VERSION)
 
-INCLUDES = -I. -I $(srctree)/include $(CONFIG_INCLUDES)
+EP_HEADERS_DIR = $(src)/include/traceevent
 
-export LIBTRACEEVENT_STATIC LIBTRACEEVENT_SHARED
+INCLUDES = -I. -I $(srctree)/include -I $(EP_HEADERS_DIR) $(CONFIG_INCLUDES)
+
+export LIBTRACEEVENT_STATIC LIBTRACEEVENT_SHARED EP_HEADERS_DIR
 
 # Set compile option CFLAGS
 ifdef EXTRA_CFLAGS
@@ -334,10 +336,10 @@ install_pkgconfig: $(PKG_CONFIG_FILE)
 	$(Q)$(call do_install_pkgconfig_file,$(prefix))
 
 install_headers:
-	$(Q)$(call do_install,src/event-parse.h,$(includedir_SQ),644);
-	$(Q)$(call do_install,src/event-utils.h,$(includedir_SQ),644);
-	$(Q)$(call do_install,src/trace-seq.h,$(includedir_SQ),644);
-	$(Q)$(call do_install,src/kbuffer.h,$(includedir_SQ),644)
+	$(Q)$(call do_install,$(EP_HEADERS_DIR)/event-parse.h,$(includedir_SQ),644);
+	$(Q)$(call do_install,$(EP_HEADERS_DIR)/event-utils.h,$(includedir_SQ),644);
+	$(Q)$(call do_install,$(EP_HEADERS_DIR)/trace-seq.h,$(includedir_SQ),644);
+	$(Q)$(call do_install,$(EP_HEADERS_DIR)/kbuffer.h,$(includedir_SQ),644)
 
 install: install_libs
 

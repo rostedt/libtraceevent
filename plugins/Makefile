@@ -62,7 +62,7 @@ CONFIG_FLAGS   =
 OBJ            = $@
 N              =
 
-INCLUDES = -I. -I.. -I../src -I $(srctree)/include $(CONFIG_INCLUDES)
+INCLUDES = -I. -I.. -I../src -I $(srctree)/include -I $(EP_HEADERS_DIR) $(CONFIG_INCLUDES)
 
 # Set compile option CFLAGS
 ifdef EXTRA_CFLAGS
