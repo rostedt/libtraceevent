@@ -1828,6 +1828,16 @@ static int event_read_fields(struct tep_event *event, struct tep_format_field **
 		field->size = strtoul(token, NULL, 0);
 		free_token(token);
 
+		/*
+		 * The old data format before dynamic arrays had dynamic
+		 * strings defined with just a 2 byte offset (the length
+		 * is defined by the strlen() of the string. To process them
+		 * correctly, check if the field is dynamic and has a size of
+		 * 2 bytes. All current dynamic events have a size of 4.
+		 */
+		if ((field->flags & TEP_FIELD_IS_DYNAMIC) && field->size == 2)
+			field->flags |= TEP_FIELD_IS_STRING | TEP_FIELD_IS_ARRAY;
+
 		if (read_expected(TEP_EVENT_OP, ";") < 0)
 			goto fail_expect;
 
