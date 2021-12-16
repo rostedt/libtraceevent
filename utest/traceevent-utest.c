@@ -26,6 +26,7 @@
 #define DYN_STR_EVENT_SYSTEM		"irq"
 #define DYN_STR_FIELD			"name"
 #define DYN_STRING			"hello"
+#define DYN_STRING_FMT			"irq=0 handler=hello"
 static const char dyn_str_event[] =
 	"name: irq_handler_entry\n"
 	"ID: 1\n"
@@ -107,6 +108,9 @@ static void parse_dyn_str(const char *dyn_str, void *data)
 {
 	struct tep_format_field *field;
 	struct tep_event *event;
+	struct tep_record record;
+
+	record.data = data;
 
 	CU_TEST(tep_parse_format(test_tep, &event,
 				 dyn_str, strlen(dyn_str),
@@ -117,6 +121,11 @@ static void parse_dyn_str(const char *dyn_str, void *data)
 	trace_seq_reset(test_seq);
 	tep_print_field(test_seq, data, field);
 	CU_TEST(strcmp(test_seq->buffer, DYN_STRING) == 0);
+
+	trace_seq_reset(test_seq);
+	tep_print_event(test_tep, test_seq, &record, "%s", TEP_PRINT_INFO);
+	trace_seq_do_printf(test_seq);
+	CU_TEST(strcmp(test_seq->buffer, DYN_STRING_FMT) == 0);
 }
 
 static void test_parse_dyn_str_event(void)
