@@ -246,15 +246,22 @@ define update_dir
    fi);
 endef
 
-tags:	force
-	$(RM) tags
-	find . -name '*.[ch]' | xargs ctags --extra=+f --c-kinds=+px \
-	--regex-c++='/_PE\(([^,)]*).*/TEP_ERRNO__\1/'
+VIM_TAGS = $(obj)/tags
+EMACS_TAGS = $(obj)/TAGS
 
-TAGS:	force
-	$(RM) TAGS
-	find . -name '*.[ch]' | xargs etags \
-	--regex='/_PE(\([^,)]*\).*/TEP_ERRNO__\1/'
+$(VIM_TAGS): force
+	$(RM) $(VIM_TAGS)
+	find $(src) -name '*.[ch]' | (cd $(obj) && xargs ctags --extra=+f --c-kinds=+px \
+	--regex-c++='/_PE\(([^,)]*).*/TEP_ERRNO__\1/')
+
+tags: $(VIM_TAGS)
+
+$(EMACS_TAGS): force
+	$(RM) $(EMACS_TAGS)
+	find $(src) -name '*.[ch]' | (cd $(obj) && xargs etags \
+	--regex='/_PE(\([^,)]*\).*/TEP_ERRNO__\1/')
+
+TAGS: $(EMACS_TAGS)
 
 define build_prefix
 	(echo $1 > $@.tmp;	\
