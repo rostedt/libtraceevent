@@ -120,7 +120,7 @@ static void parse_dyn_str(const char *dyn_str, void *data, int size)
 	field = tep_find_any_field(event, DYN_STR_FIELD);
 	CU_TEST(field != NULL);
 	trace_seq_reset(test_seq);
-	tep_print_field(test_seq, data, field);
+	tep_print_field_content(test_seq, data, size, field);
 	CU_TEST(strcmp(test_seq->buffer, DYN_STRING) == 0);
 
 	trace_seq_reset(test_seq);

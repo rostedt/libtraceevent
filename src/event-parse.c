@@ -5423,7 +5423,7 @@ static void print_field_raw(struct trace_seq *s, void *data, int size,
 static int print_parse_data(struct tep_print_parse *parse, struct trace_seq *s,
 			    void *data, int size, struct tep_event *event);
 
-void static inline print_field(struct trace_seq *s, void *data, int size,
+static inline void print_field(struct trace_seq *s, void *data, int size,
 				    struct tep_format_field *field,
 				    struct tep_print_parse **parse_ptr)
 {
@@ -5481,6 +5481,25 @@ void static inline print_field(struct trace_seq *s, void *data, int size,
 	print_field_raw(s, data, size, field);
 }
 
+/**
+ * tep_print_field_content - write out the raw content of a field
+ * @s:    The trace_seq to write the content into
+ * @data: The payload to extract the field from.
+ * @size: The size of the payload.
+ * @field: The field to extract
+ *
+ * Use @field to find the field content from within @data and write it
+ * in human readable format into @s.
+ *
+ * It will not write anything on error (s->len will not move)
+ */
+void tep_print_field_content(struct trace_seq *s, void *data, int size,
+			     struct tep_format_field *field)
+{
+	print_field(s, data, size, field, NULL);
+}
+
+/** DEPRECATED **/
 void tep_print_field(struct trace_seq *s, void *data,
 		     struct tep_format_field *field)
 {

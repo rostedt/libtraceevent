@@ -544,8 +544,8 @@ struct tep_cmdline *tep_data_pid_from_comm(struct tep_handle *tep, const char *c
 					   struct tep_cmdline *next);
 int tep_cmdline_pid(struct tep_handle *tep, struct tep_cmdline *cmdline);
 
-void tep_print_field(struct trace_seq *s, void *data,
-		     struct tep_format_field *field);
+void tep_print_field_content(struct trace_seq *s, void *data, int size,
+			     struct tep_format_field *field);
 void tep_record_print_fields(struct trace_seq *s,
 			     struct tep_record *record,
 			     struct tep_event *event);
@@ -769,5 +769,9 @@ enum tep_loglevel {
 	TEP_LOG_ALL
 };
 void tep_set_loglevel(enum tep_loglevel level);
+
+/* DEPRECATED */
+void tep_print_field(struct trace_seq *s, void *data,
+		     struct tep_format_field *field);
 
 #endif /* _PARSE_EVENTS_H */
