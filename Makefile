@@ -248,6 +248,11 @@ define update_dir
    fi);
 endef
 
+UTEST_DIR = utest
+
+test:	force $(LIBTRACEEVENT_STATIC)
+	$(Q)$(call descend,$(UTEST_DIR),test)
+
 VIM_TAGS = $(obj)/tags
 EMACS_TAGS = $(obj)/TAGS
 
