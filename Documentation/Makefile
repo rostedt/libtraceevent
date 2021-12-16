@@ -154,12 +154,12 @@ ifdef missing_tools
 	$(error "You need to install $(missing_tools) for man pages")
 endif
 
-install-%.3: $(OUTPUT)%.3
+$(OUTPUT)install-%.3: $(OUTPUT)%.3
 	$(call QUIET_INSTALL, $<) \
 		$(INSTALL) -d -m 755 $(DESTDIR)$(man3dir); \
 		$(INSTALL) -m 644 $< $(DESTDIR)$(man3dir);
 
-do-install-man: man $(addprefix install-,$(wildcard $(OUTPUT)*.3))
+do-install-man: man $(patsubst $(OUTPUT)%,$(OUTPUT)install-%,$(wildcard $(OUTPUT)*.3))
 
 install-man: check-man-tools man
 	$(Q)$(MAKE) -C . do-install-man
