@@ -104,13 +104,14 @@ static struct tep_handle *test_tep;
 static struct trace_seq *test_seq;
 static struct trace_seq seq_storage;
 
-static void parse_dyn_str(const char *dyn_str, void *data)
+static void parse_dyn_str(const char *dyn_str, void *data, int size)
 {
 	struct tep_format_field *field;
 	struct tep_event *event;
 	struct tep_record record;
 
 	record.data = data;
+	record.size = size;
 
 	CU_TEST(tep_parse_format(test_tep, &event,
 				 dyn_str, strlen(dyn_str),
@@ -130,12 +131,12 @@ static void parse_dyn_str(const char *dyn_str, void *data)
 
 static void test_parse_dyn_str_event(void)
 {
-	parse_dyn_str(dyn_str_event, dyn_str_event_data);
+	parse_dyn_str(dyn_str_event, dyn_str_event_data, sizeof(dyn_str_data));
 }
 
 static void test_parse_dyn_str_old_event(void)
 {
-	parse_dyn_str(dyn_str_old_event, dyn_str_old_event_data);
+	parse_dyn_str(dyn_str_old_event, dyn_str_old_event_data, sizeof(dyn_str_old_data));
 }
 
 static int test_suite_destroy(void)
