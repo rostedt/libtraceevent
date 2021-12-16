@@ -41,7 +41,7 @@ libdir_relative ?= $(libdir_relative_tmp)
 prefix ?= /usr/local
 libdir = $(prefix)/$(libdir_relative)
 
-include ../scripts/Makefile.include
+include ../scripts/utils.mk
 
 # copy a bit from Linux kbuild
 
@@ -51,13 +51,6 @@ endif
 ifndef VERBOSE
   VERBOSE = 0
 endif
-
-ifeq ($(srctree),)
-srctree := $(patsubst %/,%,$(dir $(CURDIR)))
-#$(info Determined 'srctree' to be $(srctree))
-endif
-
-export prefix libdir
 
 # Shell quotes
 plugin_dir_SQ = $(subst ','\'',$(plugin_dir))
@@ -89,16 +82,9 @@ else
   Q = @
 endif
 
-# Disable command line variables (CFLAGS) override from top
-# level Makefile (perf), otherwise build Makefile will get
-# the same command line setup.
-MAKEOVERRIDES=
-
 export srctree OUTPUT CC LD CFLAGS V
 
-build := -f $(srctree)/build/Makefile.build dir=. obj
-
-DYNAMIC_LIST_FILE := $(OUTPUT)libtraceevent-dynamic-list
+DYNAMIC_LIST_FILE := $(bdir)/libtraceevent-dynamic-list
 
 PLUGINS  = plugin_jbd2.so
 PLUGINS += plugin_hrtimer.so
@@ -113,22 +99,16 @@ PLUGINS += plugin_scsi.so
 PLUGINS += plugin_cfg80211.so
 PLUGINS += plugin_tlb.so
 
-PLUGINS    := $(addprefix $(OUTPUT),$(PLUGINS))
-PLUGINS_IN := $(PLUGINS:.so=-in.o)
+PLUGINS := $(PLUGINS:%.so=$(bdir)/%.so)
+DEPS := $(PLUGINS:$(bdir)/%.so=$(bdir)/.%.d)
 
 plugins: $(PLUGINS) $(DYNAMIC_LIST_FILE)
 
-__plugin_obj = $(notdir $@)
-  plugin_obj = $(__plugin_obj:-in.o=)
+$(PLUGINS): | $(bdir)
+$(DEPS): | $(bdir)
 
-$(PLUGINS_IN): force
-	$(Q)$(MAKE) $(build)=$(plugin_obj)
-
-$(OUTPUT)libtraceevent-dynamic-list: $(PLUGINS)
-	$(QUIET_GEN)$(call do_generate_dynamic_list_file, $(PLUGINS), $@)
-
-$(OUTPUT)%.so: $(OUTPUT)%-in.o
-	$(QUIET_LINK)$(CC) $(CFLAGS) -shared $(LDFLAGS) -nostartfiles -o $@ $^
+$(bdir)/%.so: $(srctree)/plugins/%.c
+	$(Q)$(call do_plugin_build)
 
 define update_dir
   (echo $1 > $@.tmp;                           \
@@ -150,17 +130,6 @@ TAGS:	force
 	find . -name '*.[ch]' | xargs etags \
 	--regex='/_PE(\([^,)]*\).*/TEP_ERRNO__\1/'
 
-define do_install_mkdir
-	if [ ! -d '$(DESTDIR_SQ)$1' ]; then             \
-		$(INSTALL) -d -m 755 '$(DESTDIR_SQ)$1'; \
-	fi
-endef
-
-define do_install
-	$(call do_install_mkdir,$2);                    \
-	$(INSTALL) $(if $3,-m $3,) $1 '$(DESTDIR_SQ)$2'
-endef
-
 define do_install_plugins
        for plugin in $1; do                            \
          $(call do_install,$$plugin,$(plugin_dir_SQ)); \
@@ -180,18 +149,16 @@ define do_generate_dynamic_list_file
 		fi
 endef
 
+$(DYNAMIC_LIST_FILE): $(PLUGINS)
+	$(Q)($(print_gen)$(call do_generate_dynamic_list_file, $(PLUGINS), $@))
+
 install: $(PLUGINS)
-	$(call QUIET_INSTALL, trace_plugins) \
-	$(call do_install_plugins, $(PLUGINS))
+	$(Q)$(call do_install_plugins, $(PLUGINS))
 
 clean:
-	$(call QUIET_CLEAN, trace_plugins) \
-		$(RM) $(OUTPUT)*.o $(OUTPUT)*~ $(TARGETS) $(OUTPUT)*.a $(OUTPUT)*.so $(VERSION_FILES) .*.d .*.cmd; \
-		$(RM) $(OUTPUT)libtraceevent-dynamic-list; \
-		$(RM) $(PLUGINS); \
-		$(RM) TRACEEVENT-CFLAGS tags TAGS;
+	$(Q)$(call do_clean, $(DYNAMIC_LIST_FILE) $(PLUGINS))
 
-PHONY += force plugins
+PHONY += force plugins $(DYNAMIC_LIST_FILE)
 force:
 
 # Declare the contents of the .PHONY variable as phony.  We keep that

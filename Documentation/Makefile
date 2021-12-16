@@ -1,5 +1,5 @@
-include ../scripts/Makefile.include
 include ../scripts/utilities.mak
+include ../scripts/utils.mk
 
 # This Makefile and manpage XSL files were taken from tools/perf/Documentation
 # and modified for libtraceevent.
@@ -12,6 +12,8 @@ MAN_TXT = $(MAN3_TXT)
 _MAN_XML=$(patsubst %.txt,%.xml,$(MAN_TXT))
 _MAN_HTML=$(patsubst %.txt,%.html,$(MAN_TXT))
 _DOC_MAN3=$(patsubst %.txt,%.m,$(MAN3_TXT))
+
+OUTPUT		:= $(obj)/Documentation/
 
 MAN_XML=$(addprefix $(OUTPUT),$(_MAN_XML))
 MAN_HTML=$(addprefix $(OUTPUT),$(_MAN_HTML))
@@ -155,9 +157,7 @@ ifdef missing_tools
 endif
 
 $(OUTPUT)install-%.3: $(OUTPUT)%.3
-	$(call QUIET_INSTALL, $<) \
-		$(INSTALL) -d -m 755 $(DESTDIR)$(man3dir); \
-		$(INSTALL) -m 644 $< $(DESTDIR)$(man3dir);
+	$(Q)$(call do_install,$<,$(man3dir),644)
 
 do-install-man: man $(patsubst $(OUTPUT)%,$(OUTPUT)install-%,$(wildcard $(OUTPUT)*.3))
 
@@ -165,9 +165,7 @@ install-man: check-man-tools man
 	$(Q)$(MAKE) -C . do-install-man
 
 install-%.txt: $(OUTPUT)%.html
-	$(call QUIET_INSTALL, $<) \
-		$(INSTALL) -d -m 755 $(DESTDIR)$(htmldir); \
-		$(INSTALL) -m 644 $< $(DESTDIR)$(htmldir);
+	$(Q)$(call do_install,$<,$(htmldir),644)
 
 do-install-html: html $(addprefix install-,$(wildcard *.txt))
 
