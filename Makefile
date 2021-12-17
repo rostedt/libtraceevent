@@ -131,6 +131,7 @@ else
 endif
 
 LIBS = -ldl
+export LIBS
 
 set_plugin_dir := 1
 
