@@ -4834,6 +4834,10 @@ static int print_mac_arg(struct trace_seq *s, const char *format,
 		return 0;
 	}
 
+	/* evaluate if the arg has a type cast */
+	while (arg->type == TEP_PRINT_TYPE)
+		arg = arg->typecast.item;
+
 	if (arg->type != TEP_PRINT_FIELD) {
 		trace_seq_printf(s, "ARG TYPE NOT FIELD BUT %d",
 				 arg->type);
@@ -5042,6 +5046,10 @@ static int print_ipv4_arg(struct trace_seq *s, const char *ptr, char i,
 		return ret;
 	}
 
+	/* evaluate if the arg has a type cast */
+	while (arg->type == TEP_PRINT_TYPE)
+		arg = arg->typecast.item;
+
 	if (arg->type != TEP_PRINT_FIELD) {
 		trace_seq_printf(s, "ARG TYPE NOT FIELD BUT %d", arg->type);
 		return ret;
@@ -5088,6 +5096,10 @@ static int print_ipv6_arg(struct trace_seq *s, const char *ptr, char i,
 		process_defined_func(s, data, size, event, arg);
 		return rc;
 	}
+
+	/* evaluate if the arg has a type cast */
+	while (arg->type == TEP_PRINT_TYPE)
+		arg = arg->typecast.item;
 
 	if (arg->type != TEP_PRINT_FIELD) {
 		trace_seq_printf(s, "ARG TYPE NOT FIELD BUT %d", arg->type);
@@ -5151,6 +5163,10 @@ static int print_ipsa_arg(struct trace_seq *s, const char *ptr, char i,
 		process_defined_func(s, data, size, event, arg);
 		return rc;
 	}
+
+	/* evaluate if the arg has a type cast */
+	while (arg->type == TEP_PRINT_TYPE)
+		arg = arg->typecast.item;
 
 	if (arg->type != TEP_PRINT_FIELD) {
 		trace_seq_printf(s, "ARG TYPE NOT FIELD BUT %d", arg->type);
@@ -5266,6 +5282,10 @@ static int print_uuid_arg(struct trace_seq *s, const char *ptr,
 		process_defined_func(s, data, size, event, arg);
 		return ret;
 	}
+
+	/* evaluate if the arg has a type cast */
+	while (arg->type == TEP_PRINT_TYPE)
+		arg = arg->typecast.item;
 
 	if (arg->type != TEP_PRINT_FIELD) {
 		trace_seq_printf(s, "ARG TYPE NOT FIELD BUT %d", arg->type);
@@ -5440,6 +5460,7 @@ static inline void print_field(struct trace_seq *s, void *data, int size,
 	struct tep_event *event = field->event;
 	struct tep_print_parse *start_parse;
 	struct tep_print_parse *parse;
+	struct tep_print_arg *arg;
 	bool has_0x;
 
 	parse = parse_ptr ? *parse_ptr : event->print_fmt.print_cache;
@@ -5464,9 +5485,13 @@ static inline void print_field(struct trace_seq *s, void *data, int size,
 			goto next;
 		}
 
-		if (!parse->arg ||
-		    parse->arg->type != TEP_PRINT_FIELD ||
-		    parse->arg->field.field != field) {
+		arg = parse->arg;
+
+		while (arg && arg->type == TEP_PRINT_TYPE)
+			arg = arg->typecast.item;
+
+		if (!arg || arg->type != TEP_PRINT_FIELD ||
+		    arg->field.field != field) {
 			has_0x = false;
 			goto next;
 		}
