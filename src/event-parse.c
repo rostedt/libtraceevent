@@ -5139,6 +5139,8 @@ static int print_ipsa_arg(struct trace_seq *s, const char *ptr, char i,
 	unsigned char *buf;
 	struct sockaddr_storage *sa;
 	bool reverse = false;
+	unsigned int offset;
+	unsigned int len;
 	int rc = 0;
 	int ret;
 
@@ -5168,27 +5170,38 @@ static int print_ipsa_arg(struct trace_seq *s, const char *ptr, char i,
 	while (arg->type == TEP_PRINT_TYPE)
 		arg = arg->typecast.item;
 
-	if (arg->type != TEP_PRINT_FIELD) {
-		trace_seq_printf(s, "ARG TYPE NOT FIELD BUT %d", arg->type);
+	if (arg->type == TEP_PRINT_FIELD) {
+
+		if (!arg->field.field) {
+			arg->field.field =
+				tep_find_any_field(event, arg->field.name);
+			if (!arg->field.field) {
+				do_warning("%s: field %s not found",
+					   __func__, arg->field.name);
+				return rc;
+			}
+		}
+
+		offset = arg->field.field->offset;
+		len = arg->field.field->size;
+
+	} else if (arg->type == TEP_PRINT_DYNAMIC_ARRAY) {
+
+		dynamic_offset_field(event->tep, arg->dynarray.field, data,
+				     size, &offset, &len);
+
+	} else {
+		trace_seq_printf(s, "ARG NOT FIELD NOR DYNAMIC ARRAY BUT TYPE %d",
+				 arg->type);
 		return rc;
 	}
 
-	if (!arg->field.field) {
-		arg->field.field =
-			tep_find_any_field(event, arg->field.name);
-		if (!arg->field.field) {
-			do_warning("%s: field %s not found",
-				   __func__, arg->field.name);
-			return rc;
-		}
-	}
-
-	sa = (struct sockaddr_storage *) (data + arg->field.field->offset);
+	sa = (struct sockaddr_storage *)(data + offset);
 
 	if (sa->ss_family == AF_INET) {
 		struct sockaddr_in *sa4 = (struct sockaddr_in *) sa;
 
-		if (arg->field.field->size < sizeof(struct sockaddr_in)) {
+		if (len < sizeof(struct sockaddr_in)) {
 			trace_seq_printf(s, "INVALIDIPv4");
 			return rc;
 		}
@@ -5201,7 +5214,7 @@ static int print_ipsa_arg(struct trace_seq *s, const char *ptr, char i,
 	} else if (sa->ss_family == AF_INET6) {
 		struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *) sa;
 
-		if (arg->field.field->size < sizeof(struct sockaddr_in6)) {
+		if (len < sizeof(struct sockaddr_in6)) {
 			trace_seq_printf(s, "INVALIDIPv6");
 			return rc;
 		}
