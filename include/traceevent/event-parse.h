@@ -154,11 +154,13 @@ struct tep_print_arg_atom {
 
 struct tep_print_arg_string {
 	char			*string;
+	int			offset;		// for backward compatibility
 	struct tep_format_field	*field;
 };
 
 struct tep_print_arg_bitmask {
 	char			*bitmask;
+	int			offset;		// for backward compatibility
 	struct tep_format_field	*field;
 };
 

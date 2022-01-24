@@ -3135,6 +3135,7 @@ process_str(struct tep_event *event __maybe_unused, struct tep_print_arg *arg,
 
 	arg->type = TEP_PRINT_STRING;
 	arg->string.string = token;
+	arg->string.offset = -1;
 	arg->string.field = NULL;
 
 	if (read_expected(TEP_EVENT_DELIM, ")") < 0)
@@ -3164,6 +3165,7 @@ process_bitmask(struct tep_event *event __maybe_unused, struct tep_print_arg *ar
 
 	arg->type = TEP_PRINT_BITMASK;
 	arg->bitmask.bitmask = token;
+	arg->bitmask.offset = -1;
 	arg->bitmask.field = NULL;
 
 	if (read_expected(TEP_EVENT_DELIM, ")") < 0)
@@ -4444,8 +4446,10 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 	case TEP_PRINT_TYPE:
 		break;
 	case TEP_PRINT_STRING: {
-		if (!arg->string.field)
+		if (!arg->string.field) {
 			arg->string.field = tep_find_any_field(event, arg->string.string);
+			arg->string.offset = arg->string.field->offset;
+		}
 		if (!arg->string.field)
 			break;
 		dynamic_offset_field(tep, arg->string.field, data, size, &offset, &len);
@@ -4459,8 +4463,10 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 		print_str_to_seq(s, format, len_arg, arg->string.string);
 		break;
 	case TEP_PRINT_BITMASK: {
-		if (!arg->bitmask.field)
+		if (!arg->bitmask.field) {
 			arg->bitmask.field = tep_find_any_field(event, arg->bitmask.bitmask);
+			arg->bitmask.offset = arg->bitmask.field->offset;
+		}
 		if (!arg->bitmask.field)
 			break;
 		dynamic_offset_field(tep, arg->bitmask.field, data, size, &offset, &len);
