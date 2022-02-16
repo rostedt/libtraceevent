@@ -68,10 +68,10 @@ int __tep_vprint(const char *name, enum tep_loglevel level,
 {
 	int ret = errno;
 
-	if (errno && print_err)
+	if (errno && print_err) {
 		perror(name);
-
-	fprintf(stderr, "  ");
+		fprintf(stderr, "  ");
+	}
 	vfprintf(stderr, fmt, ap);
 	fprintf(stderr, "\n");
 
