@@ -4,7 +4,8 @@ libtraceevent(3)
 NAME
 ----
 tep_find_function, tep_find_function_address, tep_set_function_resolver,
-tep_reset_function_resolver, tep_register_function, tep_register_print_string -
+tep_reset_function_resolver, tep_register_function, tep_register_print_string,
+tep_get_function_count -
 function related tep APIs
 
 SYNOPSIS
@@ -20,6 +21,7 @@ const char pass:[*]*tep_find_function*(struct tep_handle pass:[*]_tep_, unsigned
 unsigned long long *tep_find_function_address*(struct tep_handle pass:[*]_tep_, unsigned long long _addr_);
 int *tep_register_function*(struct tep_handle pass:[*]_tep_, char pass:[*]_name_, unsigned long long _addr_, char pass:[*]_mod_);
 int *tep_register_print_string*(struct tep_handle pass:[*]_tep_, const char pass:[*]_fmt_, unsigned long long _addr_);
+int *tep_get_function_count*(struct tep_handle *_tep_)
 --
 
 DESCRIPTION
@@ -75,6 +77,7 @@ addresses and those strings. The _tep_ argument is the trace event parser
 context. The _fmt_ is the string to register, it is copied internally.
 The _addr_ is the address the string was located at.
 
+*tep_get_function_count*() returns the number of registered functions in a tep handler.
 
 RETURN VALUE
 ------------

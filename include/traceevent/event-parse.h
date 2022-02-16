@@ -566,6 +566,8 @@ struct tep_event **tep_list_events_copy(struct tep_handle *tep,
 struct tep_format_field **tep_event_common_fields(struct tep_event *event);
 struct tep_format_field **tep_event_fields(struct tep_event *event);
 
+int tep_get_function_count(struct tep_handle *tep);
+
 enum tep_endian {
         TEP_LITTLE_ENDIAN = 0,
         TEP_BIG_ENDIAN
