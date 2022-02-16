@@ -19,14 +19,14 @@ int *tep_parse_kallsyms*(struct tep_handle pass:[*]_tep_, const char pass:[*]_bu
 
 DESCRIPTION
 -----------
-*tep_parse_saved_cmdlines* is a helper function to parse content in the tracefs
+*tep_parse_saved_cmdlines()* is a helper function to parse content in the tracefs
 file system of the "saved_cmdlines" file (stored in a string buffer passed in by _buf_)
 and loads the mapping of the process IDs (pid) to the comm names in the
 _tep_ handler. The events store the pid and this is used to be able to show the
 process names associated to those process ids. It parses the string _buf_ that
 holds the content of saved_cmdlines and ends with a nul character ('\0').
 
-*tep_parse_printk_formats* is a helper function to parse content in the tracefs
+*tep_parse_printk_formats()* is a helper function to parse content in the tracefs
 file system of the "printk_formats" file (stored in a string buffer passed in by _buf_)
 and loads the mapping of addresses of strings that may be referenced by events.
 Events only store the address of constant strings in the kernel, and the mapping
@@ -34,7 +34,7 @@ of their address to the string is exported to user space in the printk_formats
 file. It parses the string _buf_ that holds the content of printk_formats and
 ends with a nul character ('\0').
 
-*tep_parse_kallsyms* is a helper function to parse the Linux kernel /proc/kallsyms format
+*tep_parse_kallsyms()* is a helper function to parse the Linux kernel /proc/kallsyms format
 (stored in a string buffer passed in by _buf_) and load the functions into the
 _tep_ handler such that function IP addresses can be mapped to their name when
 parsing events with %pS in the print format field. It parses the string _buf_ that
@@ -126,8 +126,8 @@ FILES
 
 SEE ALSO
 --------
-_libtraceevent(3)_, _trace-cmd(1)_, _tep_register_comm(3)_, _tep_register_function(3)_,
-_tep_register_print_string_(3)
+*libtraceevent*(3), *trace-cmd*(1), *tep_register_comm*(3), *tep_register_function*(3),
+*tep_register_print_string*(3)
 
 AUTHOR
 ------

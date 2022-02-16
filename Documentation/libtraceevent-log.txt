@@ -26,7 +26,7 @@ int *tep_set_loglevel*(enum tep_loglevel _level_);
 --
 DESCRIPTION
 -----------
-The _tep_set_loglevel()_ function sets the level of the library logs that will be printed
+The *tep_set_loglevel()* function sets the level of the library logs that will be printed
 on the console. Library log levels are:
 [verse]
 --
@@ -68,7 +68,7 @@ FILES
 
 SEE ALSO
 --------
-_libtraceevent(3)_, _trace-cmd(1)_
+*libtraceevent*(3), *trace-cmd*(1)
 
 AUTHOR
 ------

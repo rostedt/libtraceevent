@@ -21,18 +21,18 @@ void *tep_plugin_print_options*(struct trace_seq pass:[*]s);
 
 DESCRIPTION
 -----------
-The _tep_print_printk()_ function prints the printk string formats that were
+The *tep_print_printk()* function prints the printk string formats that were
 stored for this tracing session. The _tep_ argument is trace event parser context.
 
-The _tep_print_funcs()_ function prints the stored function name to address mapping
+The *tep_print_funcs()* function prints the stored function name to address mapping
 for this tracing session. The _tep_ argument is trace event parser context.
 
-The _tep_set_test_filters()_ function sets a flag to test a filter string. If this
-flag is set, when _tep_filter_add_filter_str()_ API as called, it will print the filter
+The *tep_set_test_filters()* function sets a flag to test a filter string. If this
+flag is set, when *tep_filter_add_filter_str()* API as called, it will print the filter
 string instead of adding it. The _tep_ argument is trace event parser context.
 The _test_filters_ argument is the test flag that will be set.
 
-The _tep_plugin_print_options()_ function writes a list of the registered plugin options
+The *tep_plugin_print_options()* function writes a list of the registered plugin options
 into _s_.
 
 EXAMPLE
@@ -73,7 +73,7 @@ FILES
 
 SEE ALSO
 --------
-_libtraceevent(3)_, _trace-cmd(1)_
+*libtraceevent*(3), *trace-cmd*(1)
 
 AUTHOR
 ------
