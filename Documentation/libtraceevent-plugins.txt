@@ -25,7 +25,7 @@ int *tep_add_plugin_path*(struct tep_handle pass:[*]tep, char pass:[*]path,
 
 DESCRIPTION
 -----------
-The _tep_load_plugins()_ function loads all plugins, located in the plugin
+The *tep_load_plugins()* function loads all plugins, located in the plugin
 directories. The _tep_ argument is trace event parser context.
 The plugin directories are :
 [verse]
@@ -39,29 +39,29 @@ The plugin directories are :
 	- Directories, specified in _tep_->plugins_dir with priority TEP_PLUGIN_LAST
 --
 Loading of plugins can be controlled by the _tep_flags_, using the
-_tep_set_flag()_ API:
+*tep_set_flag()* API:
 [verse]
 --
 	_TEP_DISABLE_SYS_PLUGINS_	- do not load plugins, located in
 					the system's plugin directory.
 	_TEP_DISABLE_PLUGINS_		- do not load any plugins.
 --
-The _tep_set_flag()_ API needs to be called before _tep_load_plugins()_, if
+The *tep_set_flag()* API needs to be called before *tep_load_plugins()*, if
 loading of all plugins is not the desired case.
 
-The _tep_unload_plugins()_ function unloads the plugins, previously loaded by
-_tep_load_plugins()_. The _tep_ argument is trace event parser context. The
+The *tep_unload_plugins()* function unloads the plugins, previously loaded by
+*tep_load_plugins()*. The _tep_ argument is trace event parser context. The
 _plugin_list_ is the list of loaded plugins, returned by
-the _tep_load_plugins()_ function.
+the *tep_load_plugins()* function.
 
-The _tep_load_plugins_hook()_ function walks through all directories with plugins
-and calls user specified _load_plugin()_ hook for each plugin file. Only files
+The *tep_load_plugins_hook()* function walks through all directories with plugins
+and calls user specified *load_plugin()* hook for each plugin file. Only files
 with given _suffix_ are considered to be plugins. The _data_ is a user specified
-context, passed to _load_plugin()_. Directories and the walk order are the same
-as in _tep_load_plugins()_ API.
+context, passed to *load_plugin()*. Directories and the walk order are the same
+as in *tep_load_plugins()* API.
 
-The _tep_add_plugin_path()_ functions adds additional directories with plugins in
-the _tep_->plugins_dir list. It must be called before _tep_load_plugins()_ in order
+The *tep_add_plugin_path()* functions adds additional directories with plugins in
+the _tep_->plugins_dir list. It must be called before *tep_load_plugins()* in order
 for the plugins from the new directories to be loaded. The _tep_ argument is
 the trace event parser context. The _path_ is the full path to the new plugin
 directory. The _prio_ argument specifies the loading priority order for the
@@ -78,9 +78,9 @@ plugins in the other directories.
 
 RETURN VALUE
 ------------
-The _tep_load_plugins()_ function returns a list of successfully loaded plugins,
+The *tep_load_plugins()* function returns a list of successfully loaded plugins,
 or NULL in case no plugins are loaded.
-The _tep_add_plugin_path()_ function returns -1 in case of an error, 0 otherwise.
+The *tep_add_plugin_path()* function returns -1 in case of an error, 0 otherwise.
 
 EXAMPLE
 -------
@@ -121,7 +121,7 @@ FILES
 
 SEE ALSO
 --------
-_libtraceevent(3)_, _trace-cmd(1)_, _tep_set_flag(3)_
+*libtraceevent*(3), *trace-cmd*(1), *tep_set_flag*(3)
 
 AUTHOR
 ------

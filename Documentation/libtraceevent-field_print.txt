@@ -25,25 +25,25 @@ DESCRIPTION
 -----------
 These functions print recorded field's data, according to the field's type.
 
-The _tep_print_field_content()_ function extracts from the recorded raw _data_ value of
+The *tep_print_field_content()* function extracts from the recorded raw _data_ value of
 the _field_ and prints it into _s_, according to the field type.
 
-The _tep_print_fields()_ prints each field name followed by the record's field
+The *tep_print_fields()* prints each field name followed by the record's field
 value according to the field's type:
 [verse]
 --
 "field1_name=field1_value field2_name=field2_value ..."
 --
-It iterates all fields of the _event_, and calls _tep_print_field_content()_ for each of
+It iterates all fields of the _event_, and calls *tep_print_field_content()* for each of
 them.
 
-The _tep_print_num_field()_ function prints a numeric field with given format
+The *tep_print_num_field()* function prints a numeric field with given format
 string. A search is performed in the _event_ for a field with _name_. If such
 field is found, its value is extracted from the _record_ and is printed in the
 _s_, according to the given format string _fmt_. If the argument _err_ is
 non-zero, and an error occures - it is printed in the _s_.
 
-The _tep_print_func_field()_ function prints a function field with given format
+The *tep_print_func_field()* function prints a function field with given format
 string.  A search is performed in the _event_ for a field with _name_. If such
 field is found, its value is extracted from the _record_. The value is assumed
 to be a function address, and a search is perform to find the name of this
@@ -51,16 +51,16 @@ function. The function name (if found) and its address are printed in the _s_,
 according to the given format string _fmt_. If the argument _err_ is non-zero,
 and an error occures - it is printed in _s_.
 
-The _tep_record_print_fields()_ prints the field's name followed by its value
+The *tep_record_print_fields()* prints the field's name followed by its value
 for all record's field.
 
-The _tep_record_print_selected_fields()_ prints the field's name followed by
+The *tep_record_print_selected_fields()* prints the field's name followed by
 its value for selected subset of record field. The fields to be printed are
 defined by the _select_mask_ bit mask.
 
 RETURN VALUE
 ------------
-The _tep_print_num_field()_ and _tep_print_func_field()_ functions return 1
+The *tep_print_num_field()* and *tep_print_func_field()* functions return 1
 on success, -1 in case of an error or 0 if the print buffer _s_ is full.
 
 EXAMPLE
@@ -113,7 +113,7 @@ FILES
 
 SEE ALSO
 --------
-_libtraceevent(3)_, _trace-cmd(1)_
+*libtraceevent*(3), *trace-cmd*(1)
 
 AUTHOR
 ------

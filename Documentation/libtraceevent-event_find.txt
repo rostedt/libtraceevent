@@ -23,15 +23,15 @@ This set of functions can be used to search for an event, based on a given
 criteria. All functions require a pointer to a _tep_, trace event parser
 context.
 
-The _tep_find_event()_ function searches for an event by given event _id_. The
+The *tep_find_event()* function searches for an event by given event _id_. The
 event ID is assigned dynamically and can be viewed in event's format file,
 "ID" field.
 
-The tep_find_event_by_name()_ function searches for an event by given
+The *tep_find_event_by_name()* function searches for an event by given
 event _name_, under the system _sys_. If the _sys_ is NULL (not specified),
 the first event with _name_ is returned.
 
-The tep_find_event_by_record()_ function searches for an event from a given
+The tep_find_event_by_record()* function searches for an event from a given
 _record_.
 
 RETURN VALUE
@@ -81,7 +81,7 @@ FILES
 
 SEE ALSO
 --------
-_libtraceevent(3)_, _trace-cmd(1)_
+*libtraceevent*(3), *trace-cmd*(1)
 
 AUTHOR
 ------

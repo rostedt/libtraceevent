@@ -175,7 +175,7 @@ FILES
 
 SEE ALSO
 --------
-_trace-cmd(1)_
+*trace-cmd*(1)
 
 AUTHOR
 ------

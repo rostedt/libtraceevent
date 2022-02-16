@@ -21,19 +21,19 @@ These functions can be used to find function name and start address, by given
 address. The given address does not have to be exact, it will select the function
 that would contain it.
 
-The _tep_find_function()_ function returns the function name, which contains the
+The *tep_find_function()* function returns the function name, which contains the
 given address _addr_. The _tep_ argument is the trace event parser context.
 
-The _tep_find_function_address()_ function returns the function start address,
+The *tep_find_function_address()* function returns the function start address,
 by given address _addr_. The _addr_ does not have to be exact, it will select the
 function that would contain it. The _tep_ argument is the trace event parser context.
 
 RETURN VALUE
 ------------
-The _tep_find_function()_ function returns the function name, or NULL in case
+The *tep_find_function()* function returns the function name, or NULL in case
 it cannot be found.
 
-The _tep_find_function_address()_ function returns the function start address,
+The *tep_find_function_address()* function returns the function start address,
 or 0 in case it cannot be found.
 
 EXAMPLE
@@ -66,7 +66,7 @@ FILES
 
 SEE ALSO
 --------
-_libtraceevent(3)_, _trace-cmd(1)_
+*libtraceevent*(3), *trace-cmd*(1)
 
 AUTHOR
 ------
