@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-2.0
 # libtraceevent version
 EP_VERSION = 1
-EP_PATCHLEVEL = 5
-EP_EXTRAVERSION = 0
+EP_PATCHLEVEL = 6
+EP_EXTRAVERSION = dev
 EVENT_PARSE_VERSION = $(EP_VERSION).$(EP_PATCHLEVEL).$(EP_EXTRAVERSION)
 
 MAKEFLAGS += --no-print-directory
