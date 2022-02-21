@@ -419,6 +419,9 @@ PHONY += install_plugins
 install_plugins: plugins
 	$(Q)$(call descend,plugins,install)
 
+samples: libtraceevent.a force
+	$(Q)$(call descend,$(src)/samples,all)
+
 PHONY += clean_plugins
 clean_plugins:
 	$(Q)$(call descend_clean,plugins)
