@@ -114,6 +114,22 @@ void breakpoint(void)
 	x++;
 }
 
+static const char *get_event_type(enum tep_event_type type)
+{
+	switch (type) {
+	case TEP_EVENT_ERROR: return "ERROR";
+	case TEP_EVENT_NONE: return "NONE";
+	case TEP_EVENT_SPACE: return "SPACE";
+	case TEP_EVENT_NEWLINE: return "NEWLINE";
+	case TEP_EVENT_OP: return "OP";
+	case TEP_EVENT_DELIM: return "DELIM";
+	case TEP_EVENT_ITEM: return "ITEM";
+	case TEP_EVENT_DQUOTE: return "DQUOTE";
+	case TEP_EVENT_SQUOTE: return "SQUOTE";
+	}
+	return "(UNKNOWN)";
+}
+
 static struct tep_print_arg *alloc_arg(void)
 {
 	return calloc(1, sizeof(struct tep_print_arg));
@@ -1401,8 +1417,9 @@ static enum tep_event_type read_token_item(char **tok)
 static int test_type(enum tep_event_type type, enum tep_event_type expect)
 {
 	if (type != expect) {
-		do_warning("Error: expected type %d but read %d",
-		    expect, type);
+		do_warning("Error: expected type %d (%s) but read %d (%s)",
+			   expect, get_event_type(expect),
+			   type, get_event_type(type));
 		return -1;
 	}
 	return 0;
@@ -1412,8 +1429,9 @@ static int test_type_token(enum tep_event_type type, const char *token,
 		    enum tep_event_type expect, const char *expect_tok)
 {
 	if (type != expect) {
-		do_warning("Error: expected type %d but read %d",
-		    expect, type);
+		do_warning("Error: expected type %d (%s) but read %d (%s)",
+			   expect, get_event_type(expect),
+			   type, get_event_type(type));
 		return -1;
 	}
 
