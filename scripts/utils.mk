@@ -91,6 +91,14 @@ do_clean =					\
 	($(print_clean)				\
 	$(RM) $1)
 
+do_sample_build =							\
+	$(Q)($(print_sample_build)					\
+	$(CC) -o $1 $2 $(CFLAGS) $(LIBTRACEEVENT_STATIC) -ldl)
+
+do_sample_obj =									\
+	$(Q)($(print_sample_obj)						\
+	$(CC) -g -Wall -c $(CFLAGS) -o $1 $2 -I../include/)
+
 #
 # Define a callable command for descending to a new directory
 #
