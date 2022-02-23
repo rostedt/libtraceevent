@@ -5938,9 +5938,11 @@ static int parse_arg_format(struct tep_print_parse **parse,
 		case 'L':
 			ls = 2;
 			break;
-		case '.':
 		case 'z':
 		case 'Z':
+			ls = 1;
+			break;
+		case '.':
 		case '0' ... '9':
 		case '-':
 			break;
