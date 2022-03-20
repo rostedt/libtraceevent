@@ -2144,6 +2144,120 @@ static int set_op_prio(struct tep_print_arg *arg)
 	return arg->op.prio;
 }
 
+static int consolidate_op_arg(struct tep_print_arg *arg)
+{
+	unsigned long long val, left, right;
+	int ret = 0;
+
+	if (arg->type != TEP_PRINT_OP)
+		return 0;
+
+	if (arg->op.left)
+		ret = consolidate_op_arg(arg->op.left);
+	if (ret < 0)
+		return ret;
+
+	if (arg->op.right)
+		ret = consolidate_op_arg(arg->op.right);
+	if (ret < 0)
+		return ret;
+
+	if (!arg->op.left || !arg->op.right)
+		return 0;
+
+	if (arg->op.left->type != TEP_PRINT_ATOM ||
+	    arg->op.right->type != TEP_PRINT_ATOM)
+		return 0;
+
+	/* Two atoms, we can do the operation now. */
+	left = strtoull(arg->op.left->atom.atom, NULL, 0);
+	right = strtoull(arg->op.right->atom.atom, NULL, 0);
+
+	switch (arg->op.op[0]) {
+	case '>':
+		switch (arg->op.op[1]) {
+		case '>':
+			val = left >> right;
+			break;
+		case '=':
+			val = left >= right;
+			break;
+		default:
+			val = left > right;
+			break;
+		}
+		break;
+	case '<':
+		switch (arg->op.op[1]) {
+		case '<':
+			val = left << right;
+			break;
+		case '=':
+			val = left <= right;
+			break;
+		default:
+			val = left < right;
+			break;
+		}
+		break;
+	case '&':
+		switch (arg->op.op[1]) {
+		case '&':
+			val = left && right;
+			break;
+		default:
+			val = left & right;
+			break;
+		}
+		break;
+	case '|':
+		switch (arg->op.op[1]) {
+		case '|':
+			val = left || right;
+			break;
+		default:
+			val = left | right;
+			break;
+		}
+		break;
+	case '-':
+		val = left - right;
+		break;
+	case '+':
+		val = left + right;
+		break;
+	case '*':
+		val = left * right;
+		break;
+	case '^':
+		val = left ^ right;
+		break;
+	case '/':
+		val = left / right;
+		break;
+	case '%':
+		val = left % right;
+		break;
+	case '=':
+		/* Only '==' is called here */
+		val = left == right;
+		break;
+	case '!':
+		/* Only '!=' is called here. */
+		val = left != right;
+		break;
+	default:
+		return 0;
+	}
+
+	free_arg(arg->op.left);
+	free_arg(arg->op.right);
+
+	arg->type = TEP_PRINT_ATOM;
+	free(arg->op.op);
+	return asprintf(&arg->atom.atom, "%lld", val) < 0 ? -1 : 0;
+}
+
 /* Note, *tok does not get freed, but will most likely be saved */
 static enum tep_event_type
 process_op(struct tep_event *event, struct tep_print_arg *arg, char **tok)
@@ -3506,6 +3620,10 @@ static int event_read_print_args(struct tep_event *event, struct tep_print_arg *
 		if (type == TEP_EVENT_OP) {
 			type = process_op(event, arg, &token);
 			free_token(token);
+
+			if (consolidate_op_arg(arg) < 0)
+				type = TEP_EVENT_ERROR;
+
 			if (type == TEP_EVENT_ERROR) {
 				*list = NULL;
 				free_arg(arg);
