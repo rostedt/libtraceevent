@@ -2551,6 +2551,10 @@ eval_type_str(unsigned long long val, const char *type, int pointer)
 	int len;
 
 	len = strlen(type);
+	if (len < 2) {
+		do_warning("invalid type: %s", type);
+		return val;
+	}
 
 	if (pointer) {
 
