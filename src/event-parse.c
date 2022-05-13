@@ -4915,8 +4915,10 @@ static struct tep_print_arg *make_bprint_args(char *fmt, void *data, int size, s
 				arg->next = NULL;
 				arg->type = TEP_PRINT_BSTRING;
 				arg->string.string = strdup(bptr);
-				if (!arg->string.string)
+				if (!arg->string.string) {
+					free(arg);
 					goto out_free;
+				}
 				bptr += strlen(bptr) + 1;
 				*next = arg;
 				next = &arg->next;
