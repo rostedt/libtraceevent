@@ -2317,6 +2317,7 @@ process_op(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 		arg->type = TEP_PRINT_OP;
 		arg->op.op = token;
 		arg->op.left = left;
+		arg->op.right = NULL;
 		arg->op.prio = 0;
 
 		/* it will set arg->op.right */
@@ -2422,6 +2423,7 @@ process_op(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 		arg->type = TEP_PRINT_OP;
 		arg->op.op = token;
 		arg->op.left = left;
+		arg->op.right = NULL;
 
 		arg->op.prio = 0;
 
