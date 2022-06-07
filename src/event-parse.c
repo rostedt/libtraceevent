@@ -1902,6 +1902,7 @@ static int event_read_fields(struct tep_event *event, struct tep_format_field **
 
 		*fields = field;
 		fields = &field->next;
+		field = NULL;
 
 	} while (1);
 
