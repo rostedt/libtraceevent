@@ -3485,7 +3485,9 @@ process_function(struct tep_event *event, struct tep_print_arg *arg,
 		return process_bitmask(event, arg, tok);
 	}
 	if (strcmp(token, "__get_dynamic_array") == 0 ||
-	    strcmp(token, "__get_rel_dynamic_array") == 0) {
+	    strcmp(token, "__get_rel_dynamic_array") == 0 ||
+	    strcmp(token, "__get_sockaddr") == 0 ||
+	    strcmp(token, "__get_sockaddr_rel") == 0) {
 		free_token(token);
 		return process_dynamic_array(event, arg, tok);
 	}
