@@ -739,8 +739,11 @@ int tep_parse_kallsyms(struct tep_handle *tep, const char *kallsyms)
 		if (errno)
 			goto out;
 
-		if (n != 2 || !func_end)
+		if (n != 2 || !func_end) {
+			tep_warning("Failed to parse kallsyms n=%d func_end=%d",
+				    n, func_end);
 			goto out;
+		}
 
 		func = line + func_start;
 		/*
