@@ -4084,6 +4084,18 @@ static inline void dynamic_offset_field(struct tep_handle *tep,
 		*offset += field->offset + field->size;
 }
 
+static bool check_data_offset_size(struct tep_event *event, const char *field_name,
+				    int data_size, int field_offset, int field_size)
+{
+	/* Check to make sure the field is within the data */
+	if (field_offset + field_size <= data_size)
+		return false;
+
+	tep_warning("Event '%s' field '%s' goes beyond the size of the event (%d > %d)",
+		    event->name, field_name, field_offset + field_size, data_size);
+	return true;
+}
+
 static unsigned long long
 eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg *arg)
 {
@@ -4109,6 +4121,12 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 			arg->field.field = tep_find_any_field(event, arg->field.name);
 			if (!arg->field.field)
 				goto out_warning_field;
+		}
+		if (check_data_offset_size(event, arg->field.name, size,
+					   arg->field.field->offset,
+					   arg->field.field->size)) {
+			val = 0;
+			break;
 		}
 		/* must be a number */
 		val = tep_read_number(tep, data + arg->field.field->offset,
@@ -4176,6 +4194,11 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 				break;
 			default:
 				goto default_op; /* oops, all bets off */
+			}
+			if (check_data_offset_size(event, arg->field.name, size,
+						   offset, field_size)) {
+				val = 0;
+				break;
 			}
 			val = tep_read_number(tep,
 					      data + offset, field_size);
@@ -4286,6 +4309,11 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 		/* Without [], we pass the address to the dynamic data */
 		dynamic_offset_field(tep, arg->dynarray.field, data, size,
 				     &offset, NULL);
+		if (check_data_offset_size(event, arg->field.name, size,
+					   offset, field_size)) {
+			val = (unsigned long)data;
+			break;
+		}
 		val = (unsigned long long)((unsigned long)data + offset);
 		val = (unsigned long)data + offset;
 		break;
