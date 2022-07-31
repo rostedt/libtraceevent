@@ -4314,7 +4314,6 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 			val = (unsigned long)data;
 			break;
 		}
-		val = (unsigned long long)((unsigned long)data + offset);
 		val = (unsigned long)data + offset;
 		break;
 	default: /* not sure what to do there */
