@@ -130,7 +130,7 @@ else
   CFLAGS := -g -Wall
 endif
 
-LIBS = -ldl
+LIBS ?= -ldl
 export LIBS
 
 set_plugin_dir := 1
