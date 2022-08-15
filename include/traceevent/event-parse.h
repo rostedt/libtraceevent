@@ -14,6 +14,10 @@
 
 #include "trace-seq.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef __maybe_unused
 #define __maybe_unused __attribute__((unused))
 #endif
@@ -777,5 +781,9 @@ void tep_set_loglevel(enum tep_loglevel level);
 /* DEPRECATED */
 void tep_print_field(struct trace_seq *s, void *data,
 		     struct tep_format_field *field);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _PARSE_EVENTS_H */
