@@ -64,10 +64,10 @@ void process_record(struct tep_record *record)
 {
 	int len;
 	char *comm;
-	struct tep_event_format *event;
+	struct tep_event *event;
 	unsigned long long val;
 
-	event = tep_find_event_by_record(pevent, record);
+	event = tep_find_event_by_record(tep, record);
 	if (event != NULL) {
 		if (tep_get_common_field_val(NULL, event, "common_type",
 					     record, &val, 0) == 0) {
