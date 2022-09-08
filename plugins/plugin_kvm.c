@@ -10,6 +10,8 @@
 #include "event-parse.h"
 #include "trace-seq.h"
 
+#define __weak __attribute__((weak))
+
 #ifdef HAVE_UDIS86
 
 #include <udis86.h>
@@ -273,19 +275,69 @@ static int print_exit_reason(struct trace_seq *s, struct tep_record *record,
 	return 0;
 }
 
+__weak const char *tep_plugin_kvm_get_func(struct tep_event *event,
+					   struct tep_record *record,
+					   unsigned long long *val)
+{
+	return NULL;
+}
+
+__weak void tep_plugin_kvm_put_func(const char *func)
+{
+}
+
+
+static void add_rip_function(struct trace_seq *s, struct tep_record *record,
+			     struct tep_event *event, unsigned long long rip)
+{
+	unsigned long long ip = rip;
+	const char *func;
+
+	func = tep_plugin_kvm_get_func(event, record, &ip);
+	if (func) {
+		trace_seq_printf(s, " %s", func);
+		/* The application may upate ip to the start of the function */
+		if (ip != rip)
+			trace_seq_printf(s, "+0x%0llx", rip - ip);
+		tep_plugin_kvm_put_func(func);
+	}
+}
+
 static int kvm_exit_handler(struct trace_seq *s, struct tep_record *record,
 			    struct tep_event *event, void *context)
 {
 	unsigned long long info1 = 0, info2 = 0;
+	unsigned long long rip;
 
 	if (print_exit_reason(s, record, event, "exit_reason") < 0)
 		return -1;
 
-	tep_print_num_field(s, " rip 0x%lx", event, "guest_rip", record, 1);
+	if (tep_get_field_val(s, event, "guest_rip", record, &rip, 1) < 0)
+		return -1;
+
+	trace_seq_printf(s, " rip 0x%llx", rip);
+
+	add_rip_function(s, record, event, rip);
 
 	if (tep_get_field_val(s, event, "info1", record, &info1, 0) >= 0
 	    && tep_get_field_val(s, event, "info2", record, &info2, 0) >= 0)
 		trace_seq_printf(s, " info %llx %llx", info1, info2);
+
+	return 0;
+}
+
+static int kvm_entry_handler(struct trace_seq *s, struct tep_record *record,
+			    struct tep_event *event, void *context)
+{
+	unsigned long long rip;
+
+	tep_print_num_field(s, " vcpu %u", event, "vcpu_id", record, 1);
+
+	if (tep_get_field_val(s, event, "rip", record, &rip, 1) < 0)
+		return -1;
+
+	trace_seq_printf(s, " rip 0x%llx", rip);
+	add_rip_function(s, record, event, rip);
 
 	return 0;
 }
@@ -329,11 +381,11 @@ static int kvm_emulate_insn_handler(struct trace_seq *s,
 			     flags & KVM_EMUL_INSN_F_CS_D,
 			     flags & KVM_EMUL_INSN_F_CS_L);
 
-	trace_seq_printf(s, "%llx:%llx: %s%s", csbase, rip, disasm,
-			 failed ? " FAIL" : "");
+	trace_seq_printf(s, "%llx:%llx", csbase, rip);
+	add_rip_function(s, record, event, rip);
+	trace_seq_printf(s, ": %s%s", disasm, failed ? " FAIL" : "");
 	return 0;
 }
-
 
 static int kvm_nested_vmexit_inject_handler(struct trace_seq *s, struct tep_record *record,
 					    struct tep_event *event, void *context)
@@ -352,7 +404,13 @@ static int kvm_nested_vmexit_inject_handler(struct trace_seq *s, struct tep_reco
 static int kvm_nested_vmexit_handler(struct trace_seq *s, struct tep_record *record,
 				     struct tep_event *event, void *context)
 {
-	tep_print_num_field(s, "rip %llx ", event, "rip", record, 1);
+	unsigned long long rip;
+
+	if (tep_get_field_val(s, event, "rip", record, &rip, 1) < 0)
+		return -1;
+
+	trace_seq_printf(s, " rip %llx", rip);
+	add_rip_function(s, record, event, rip);
 
 	return kvm_nested_vmexit_inject_handler(s, record, event, context);
 }
@@ -456,6 +514,9 @@ int TEP_PLUGIN_LOADER(struct tep_handle *tep)
 	tep_register_event_handler(tep, -1, "kvm", "kvm_exit",
 				   kvm_exit_handler, NULL);
 
+	tep_register_event_handler(tep, -1, "kvm", "kvm_entry",
+				   kvm_entry_handler, NULL);
+
 	tep_register_event_handler(tep, -1, "kvm", "kvm_emulate_insn",
 				   kvm_emulate_insn_handler, NULL);
 
@@ -495,6 +556,9 @@ void TEP_PLUGIN_UNLOADER(struct tep_handle *tep)
 {
 	tep_unregister_event_handler(tep, -1, "kvm", "kvm_exit",
 				     kvm_exit_handler, NULL);
+
+	tep_unregister_event_handler(tep, -1, "kvm", "kvm_entry",
+				     kvm_entry_handler, NULL);
 
 	tep_unregister_event_handler(tep, -1, "kvm", "kvm_emulate_insn",
 				     kvm_emulate_insn_handler, NULL);
