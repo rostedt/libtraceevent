@@ -38,6 +38,7 @@ Register / unregister APIs:
 	int *tep_register_print_string*(struct tep_handle pass:[*]_tep_, const char pass:[*]_fmt_, unsigned long long _addr_);
 	int *tep_register_print_function*(struct tep_handle pass:[*]_tep_, tep_func_handler _func_, enum tep_func_arg_type _ret_type_, char pass:[*]_name_, _..._);
 	int *tep_unregister_print_function*(struct tep_handle pass:[*]_tep_, tep_func_handler _func_, char pass:[*]_name_);
+	int *tep_get_function_count*(struct tep_handle *_tep_);
 
 Trace printk parsing:
 	void *tep_print_printk*(struct tep_handle pass:[*]tep);
