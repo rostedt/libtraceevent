@@ -154,6 +154,12 @@ Endian related APIs:
 Control library logs:
 	int *tep_set_loglevel*(enum tep_loglevel _level_);
 
+KVM plugin calllbacks: (Defined by the application and complied with -rdynamic)
+	const char pass:[*]*tep_plugin_kvm_get_func*(struct tep_event pass:[*]event,
+				    struct tep_record pass:[*]record,
+				    unsigned long long pass:[*]paddr);
+	void *tep_plugin_kvm_put_func*(const char pass:[*]func);
+
 Trace sequences:
 *#include <trace-seq.h>*
 	void *trace_seq_init*(struct trace_seq pass:[*]_s_);
