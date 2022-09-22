@@ -46,6 +46,11 @@ Trace printk parsing:
 	void *tep_set_test_filters*(struct tep_handle pass:[*]tep, int test_filters);
 	void *tep_plugin_print_options*(struct trace_seq pass:[*]s);
 
+Meta data parsing:
+	int *tep_parse_saved_cmdlines*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
+	int *tep_parse_printk_formats*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
+	int *tep_parse_kallsyms*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
+
 Plugins management:
 	struct tep_plugin_list pass:[*]*tep_load_plugins*(struct tep_handle pass:[*]_tep_);
 	void *tep_unload_plugins*(struct tep_plugin_list pass:[*]_plugin_list_, struct tep_handle pass:[*]_tep_);
