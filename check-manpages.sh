@@ -37,7 +37,7 @@ for man in ${MAIN}-*.txt; do
 	done
 done
 
-DEPRECATED=""
+DEPRECATED="*tep_print_field*"
 
 sed -ne 's/^[a-z].*[ \*]\([a-z_][a-z_]*\)(.*/\1/p' -e 's/^\([a-z_][a-z_]*\)(.*/\1/p' ../include/traceevent/event-parse.h | while read f; do
 	if ! grep -q '\*'${f}'\*' $MAIN_FILE; then
