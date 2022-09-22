@@ -3,7 +3,7 @@ libtraceevent(3)
 
 NAME
 ----
-tep_register_comm, tep_override_comm, tep_pid_is_registered,
+tep_register_comm, tep_override_comm, tep_is_pid_registered,
 tep_data_comm_from_pid, tep_data_pid_from_comm, tep_cmdline_pid -
 Manage pid to process name mappings.
 
