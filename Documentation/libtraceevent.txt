@@ -39,6 +39,12 @@ Register / unregister APIs:
 	int *tep_register_print_function*(struct tep_handle pass:[*]_tep_, tep_func_handler _func_, enum tep_func_arg_type _ret_type_, char pass:[*]_name_, _..._);
 	int *tep_unregister_print_function*(struct tep_handle pass:[*]_tep_, tep_func_handler _func_, char pass:[*]_name_);
 
+Trace printk parsing:
+	void *tep_print_printk*(struct tep_handle pass:[*]tep);
+	void *tep_print_funcs*(struct tep_handle pass:[*]tep);
+	void *tep_set_test_filters*(struct tep_handle pass:[*]tep, int test_filters);
+	void *tep_plugin_print_options*(struct trace_seq pass:[*]s);
+
 Plugins management:
 	struct tep_plugin_list pass:[*]*tep_load_plugins*(struct tep_handle pass:[*]_tep_);
 	void *tep_unload_plugins*(struct tep_plugin_list pass:[*]_plugin_list_, struct tep_handle pass:[*]_tep_);
