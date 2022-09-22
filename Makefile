@@ -378,7 +378,7 @@ uninstall: $(BUILD_OUTPUT)/build_uninstall
 	@$(foreach file,$(shell cat $(BUILD_OUTPUT)/build_uninstall),$(call uninstall_file,$(file)))
 
 PHONY += doc
-doc:
+doc: check_doc
 	$(Q)$(call descend,$(src)/Documentation,)
 
 PHONY += doc-clean
@@ -388,6 +388,9 @@ doc-clean:
 PHONY += doc-install
 doc-install:
 	$(Q)$(call descend,$(src)/Documentation,install)
+
+check_doc: force
+	$(Q)$(src)/check-manpages.sh $(src)/Documentation
 
 
 PHONY += doc-uninstall
