@@ -4310,7 +4310,7 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 		dynamic_offset_field(tep, arg->dynarray.field, data, size,
 				     &offset, NULL);
 		if (check_data_offset_size(event, arg->field.name, size,
-					   offset, field_size)) {
+					   offset, 0)) {
 			val = (unsigned long)data;
 			break;
 		}
