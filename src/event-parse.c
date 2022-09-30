@@ -5657,7 +5657,7 @@ static inline void print_field(struct trace_seq *s, void *data, int size,
 	struct tep_print_parse *start_parse;
 	struct tep_print_parse *parse;
 	struct tep_print_arg *arg;
-	bool has_0x;
+	bool has_0x = false;
 
 	parse = parse_ptr ? *parse_ptr : event->print_fmt.print_cache;
 
