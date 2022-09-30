@@ -4623,10 +4623,10 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 	case TEP_PRINT_STRING: {
 		if (!arg->string.field) {
 			arg->string.field = tep_find_any_field(event, arg->string.string);
+			if (!arg->string.field)
+				break;
 			arg->string.offset = arg->string.field->offset;
 		}
-		if (!arg->string.field)
-			break;
 		dynamic_offset_field(tep, arg->string.field, data, size, &offset, &len);
 		/* Do not attempt to save zero length dynamic strings */
 		if (!len)
@@ -4640,10 +4640,10 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 	case TEP_PRINT_BITMASK: {
 		if (!arg->bitmask.field) {
 			arg->bitmask.field = tep_find_any_field(event, arg->bitmask.bitmask);
+			if (!arg->bitmask.field)
+				break;
 			arg->bitmask.offset = arg->bitmask.field->offset;
 		}
-		if (!arg->bitmask.field)
-			break;
 		dynamic_offset_field(tep, arg->bitmask.field, data, size, &offset, &len);
 		print_bitmask_to_seq(tep, s, format, len_arg,
 				     data + offset, len);
