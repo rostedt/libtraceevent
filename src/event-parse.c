@@ -4073,9 +4073,9 @@ static inline void dynamic_offset_field(struct tep_handle *tep,
 {
 	/* Test for overflow */
 	if (field->offset + field->size > size) {
-		if (*offset)
+		if (offset)
 			*offset = 0;
-		if (*len)
+		if (len)
 			*len = 0;
 		return;
 	}
