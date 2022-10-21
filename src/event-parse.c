@@ -1779,7 +1779,7 @@ static int event_read_fields(struct tep_event *event, struct tep_format_field **
 			ret = append(&brackets, "", "]");
 			if (ret < 0) {
 				free(brackets);
-				goto fail;
+				goto fail_expect;
 			}
 
 			/* add brackets to type */
