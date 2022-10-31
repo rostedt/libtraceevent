@@ -46,8 +46,8 @@ endif
 
 libdir_relative ?= $(libdir_relative_temp)
 prefix ?= /usr/local
-libdir = $(prefix)/$(libdir_relative)
-man_dir = $(prefix)/share/man
+libdir ?= $(prefix)/$(libdir_relative)
+man_dir ?= $(prefix)/share/man
 man_dir_SQ = '$(subst ','\'',$(man_dir))'
 pkgconfig_dir ?= $(word 1,$(shell $(PKG_CONFIG) 		\
 			--variable pc_path pkg-config | tr ":" " "))
