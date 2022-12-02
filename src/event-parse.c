@@ -614,6 +614,43 @@ find_func(struct tep_handle *tep, unsigned long long addr)
 }
 
 /**
+ * tep_find_function_info - find a function by a given address
+ * @tep: a handle to the trace event parser context
+ * @addr: the address to find the function with
+ * @name: Return the name of the function (if found)
+ * @start: Return the start of the function (if found)
+ * @size: Return the size of the function (if found)
+ *
+ * Returns 1 if found, and 0 if it is not.
+ *  If found then @name will point to the name of the function.
+ *                @start: will contain the starting address of the function.
+ *                @size: will contain the size of the function.
+ */
+int tep_find_function_info(struct tep_handle *tep, unsigned long long addr,
+			   const char **name, unsigned long long *start,
+			   unsigned long *size)
+{
+	struct func_map *map;
+
+	map = find_func(tep, addr);
+	if (!map)
+		return 0;
+
+	if (name)
+		*name = map->func;
+	if (start)
+		*start = map->addr;
+	if (size) {
+		if (!tep->func_resolver)
+			*size = map[1].addr - map->addr;
+		else
+			*size = 0;
+	}
+
+	return 1;
+}
+
+/**
  * tep_find_function - find a function by a given address
  * @tep: a handle to the trace event parser context
  * @addr: the address to find the function with

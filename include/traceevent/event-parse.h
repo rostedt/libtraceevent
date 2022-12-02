@@ -527,6 +527,9 @@ struct tep_format_field *tep_find_any_field(struct tep_event *event, const char 
 const char *tep_find_function(struct tep_handle *tep, unsigned long long addr);
 unsigned long long
 tep_find_function_address(struct tep_handle *tep, unsigned long long addr);
+int tep_find_function_info(struct tep_handle *tep, unsigned long long addr,
+			   const char **name, unsigned long long *start,
+			   unsigned long *size);
 unsigned long long tep_read_number(struct tep_handle *tep, const void *ptr, int size);
 int tep_read_number_field(struct tep_format_field *field, const void *data,
 			  unsigned long long *value);
