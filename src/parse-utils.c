@@ -11,6 +11,7 @@
 
 #include "event-utils.h"
 #include "event-parse.h"
+#include "kbuffer.h"
 
 #define __weak __attribute__((weak))
 
@@ -122,3 +123,28 @@ void __weak __vpr_stat(const char *fmt, va_list ap)
 }
 
 void vpr_stat(const char *fmt, va_list ap) __attribute__((weak, alias("__vpr_stat")));
+
+/**
+ * kbuffer_create - create and allocate a new kbuffer
+ * @tep: the data to get the long size and endianess from
+ *
+ * Allocates and returns a new kbuffer.
+ */
+struct kbuffer *kbuffer_create(struct tep_handle *tep)
+{
+	enum kbuffer_endian endian;
+	int long_size;
+
+	long_size = tep_get_long_size(tep);
+	if (long_size == 8)
+		long_size = KBUFFER_LSIZE_8;
+	else
+		long_size = KBUFFER_LSIZE_4;
+
+	if (tep_is_file_bigendian(tep))
+		endian = KBUFFER_ENDIAN_BIG;
+	else
+		endian = KBUFFER_ENDIAN_LITTLE;
+
+	return kbuffer_alloc(long_size, endian);
+}
