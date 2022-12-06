@@ -27,6 +27,7 @@ enum {
 };
 
 struct kbuffer;
+struct tep_handle;
 
 struct kbuffer *kbuffer_alloc(enum kbuffer_long_size size, enum kbuffer_endian endian);
 struct kbuffer *kbuffer_create(struct tep_handle *tep);
