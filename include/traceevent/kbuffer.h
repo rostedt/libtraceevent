@@ -13,11 +13,13 @@
 enum kbuffer_endian {
 	KBUFFER_ENDIAN_BIG,
 	KBUFFER_ENDIAN_LITTLE,
+	KBUFFER_ENDIAN_SAME_AS_HOST,
 };
 
 enum kbuffer_long_size {
 	KBUFFER_LSIZE_4,
 	KBUFFER_LSIZE_8,
+	KBUFFER_LSIZE_SAME_AS_HOST,
 };
 
 enum {
