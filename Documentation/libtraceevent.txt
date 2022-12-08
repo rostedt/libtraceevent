@@ -116,6 +116,8 @@ Functions resolver:
 	void *tep_reset_function_resolver*(struct tep_handle pass:[*]_tep_);
 	const char pass:[*]*tep_find_function*(struct tep_handle pass:[*]_tep_, unsigned long long _addr_);
 	unsigned long long *tep_find_function_address*(struct tep_handle pass:[*]_tep_, unsigned long long _addr_);
+	int *tep_find_function_info*(struct tep_handle pass:[*]_tep_, unsigned long long _addr_, const char pass:[**]_name_,
+			   unsigned long long pass:[*]_start_, unsigned long pass:[*]_size_);
 
 Filter management:
 	struct tep_event_filter pass:[*]*tep_filter_alloc*(struct tep_handle pass:[*]_tep_);
