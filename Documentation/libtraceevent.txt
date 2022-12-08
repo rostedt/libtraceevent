@@ -31,6 +31,7 @@ Management of tep handler data structure and access of its members:
 	int *tep_get_header_timestamp_size*(struct tep_handle pass:[*]_tep_);
 	bool *tep_is_old_format*(struct tep_handle pass:[*]_tep_);
 	int *tep_strerror*(struct tep_handle pass:[*]_tep_, enum tep_errno _errnum_, char pass:[*]_buf_, size_t _buflen_);
+	struct kbuffer pass:[*]*tep_kbuffer*(struct tep_handle pass:[*]:_tep_);
 
 Register / unregister APIs:
 	int *tep_register_function*(struct tep_handle pass:[*]_tep_, char pass:[*]_name_, unsigned long long _addr_, char pass:[*]_mod_);

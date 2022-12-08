@@ -125,12 +125,13 @@ void __weak __vpr_stat(const char *fmt, va_list ap)
 void vpr_stat(const char *fmt, va_list ap) __attribute__((weak, alias("__vpr_stat")));
 
 /**
- * kbuffer_create - create and allocate a new kbuffer
- * @tep: the data to get the long size and endianess from
+ * tep_kbuffer - return an allocated kbuffer that can be used for the tep handle
+ * @tep: the handle that will work with the kbuffer descriptor
  *
  * Allocates and returns a new kbuffer.
+ * The return must be freed by kbuffer_free();
  */
-struct kbuffer *kbuffer_create(struct tep_handle *tep)
+struct kbuffer *tep_kbuffer(struct tep_handle *tep)
 {
 	enum kbuffer_endian endian;
 	int long_size;
