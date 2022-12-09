@@ -2,12 +2,17 @@
 TRACEEVENT-CFLAGS
 libtraceevent-dynamic-list
 libtraceevent.so.*
+.pc
+patches
 *.o
 build_prefix
 build_uninstall
 *~
 \#*\#
+.#*
 *.cmd
 *.so
 .*.d
 ep_version.h
+libtraceevent.pc
+lib/
