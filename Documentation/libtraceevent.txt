@@ -175,6 +175,24 @@ Trace sequences:
 	void *trace_seq_terminate*(struct trace_seq pass:[*]_s_);
 	int *trace_seq_do_fprintf*(struct trace_seq pass:[*]_s_, FILE pass:[*]_fp_);
 	int *trace_seq_do_printf*(struct trace_seq pass:[*]_s_);
+
+kbuffer parsing:
+#include <kbuffer.h>
+	struct kbuffer pass:[*]*kbuffer_alloc*(enum kbuffer_long_size _size_, enum kbuffer_endian _endian_);
+	void *kbuffer_free*(struct kbuffer pass:[*]_kbuf_);
+	int *kbuffer_load_subbuffer*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_subbuffer_);
+	int *kbuffer_subbuffer_size*(struct kbuffer pass:[*]_kbuf);
+	int *kbuffer_start_of_data*(struct kbuffer pass:[*]_kbuf_);
+	unsigned long long *kbuffer_timestamp*(struct kbuffer pass:[*]_kbuf_);
+	unsigned long long *kbuffer_subbuf_timestamp*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_subbuf_);
+	void pass:[*]*kbuffer_read_event*(struct kbuffer pass:[*]_kbuf_, unsigned long long pass:[*]_ts_);
+	void pass:[*]*kbuffer_next_event*(struct kbuffer pass:[*]_kbuf_, unsigned long long pass:[*]_ts_);
+	void pass:[*]*kbuffer_read_at_offset*(struct kbuffer pass:[*]_kbuf_, int _offset_, unsigned long long pass:[*]_ts_);
+	int *kbuffer_missed_events*(struct kbuffer pass:[*]_kbuf_);
+	int *kbuffer_event_size*(struct kbuffer pass:[*]_kbuf_);
+	int *kbuffer_curr_size*(struct kbuffer pass:[*]_kbuf_);
+	int *kbuffer_curr_offset*(struct kbuffer pass:[*]_kbuf_);
+	int *kbuffer_curr_index*(struct kbuffer pass:[*]_kbuf_);
 --
 
 DESCRIPTION

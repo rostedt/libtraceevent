@@ -39,14 +39,31 @@ done
 
 DEPRECATED="*tep_print_field*"
 
-sed -ne 's/^[a-z].*[ \*]\([a-z_][a-z_]*\)(.*/\1/p' -e 's/^\([a-z_][a-z_]*\)(.*/\1/p' ../include/traceevent/event-parse.h | while read f; do
+# Should not be used by applications, only internal use by trace-cmd
+IGNORE="*kbuffer_set_old_format* *kbuffer_raw_get* *kbuffer_ptr_delta* *kbuffer_translate_data*"
+
+HEADER=event-parse.h
+
+sed -ne 's/^[a-z].*[ \*]\([a-z_][a-z_]*\)(.*/\1/p' -e 's/^\([a-z_][a-z_]*\)(.*/\1/p' ../include/traceevent/{event-parse,trace-seq,kbuffer}.h | while read f; do
 	if ! grep -q '\*'${f}'\*' $MAIN_FILE; then
 		if [ "${DEPRECATED/\*$f\*/}" != "${DEPRECATED}" ]; then
 			continue;
 		fi
+		if [ "${IGNORE/\*$f\*/}" != "${IGNORE}" ]; then
+			continue;
+		fi
+		for head in event-parse.h trace-seq.h kbuffer.h; do
+			if grep -q $f ../include/traceevent/$head; then
+				if [ "$HEADER" != "$head" ]; then
+					last=""
+					HEADER=$head
+					break
+				fi
+			fi
+		done
 		if [ "$last" == "" ]; then
 			echo
-			echo "Missing functions from $MAIN_FILE that are in event-parse.h"
+			echo "Missing functions from $MAIN_FILE that are in $HEADER"
 			last=$f
 		fi
 		echo "   ${f}"
