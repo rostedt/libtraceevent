@@ -244,6 +244,7 @@ enum tep_print_arg_type {
 	TEP_PRINT_BITMASK,
 	TEP_PRINT_DYNAMIC_ARRAY_LEN,
 	TEP_PRINT_HEX_STR,
+	TEP_PRINT_CPUMASK,
 };
 
 struct tep_print_arg {
