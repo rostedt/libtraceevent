@@ -5681,6 +5681,7 @@ static void print_field_raw(struct trace_seq *s, void *data, int size,
 				trace_seq_printf(s, "%llu", val);
 		}
 	}
+	trace_seq_terminate(s);
 }
 
 static int print_parse_data(struct tep_print_parse *parse, struct trace_seq *s,
