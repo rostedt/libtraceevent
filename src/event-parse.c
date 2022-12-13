@@ -4491,6 +4491,161 @@ static void print_bitmask_to_seq(struct tep_handle *tep,
 	free(str);
 }
 
+#define log10(n)               \
+(			       \
+	n < 10UL ? 0 :	       \
+	n < 100UL ? 1 :	       \
+	n < 1000UL ? 2 :       \
+	n < 10000UL ? 3 :      \
+	n < 100000UL ? 4 :     \
+	n < 1000000UL ? 5 :    \
+	n < 10000000UL ? 6 :   \
+	n < 100000000UL ? 7 :  \
+	n < 1000000000UL ? 8 : \
+	9		       \
+)
+
+/* ilog10(0) should be 1 but the 0 simplifies below math */
+#define ilog10(n)    \
+(                     \
+	n == 0 ? 0UL : \
+	n == 1 ? 10UL : \
+	n == 2 ? 100UL : \
+	n == 3 ? 1000UL : \
+	n == 4 ? 10000UL : \
+	n == 5 ? 100000UL : \
+	n == 6 ? 1000000UL : \
+	n == 7 ? 10000000UL : \
+	n == 8 ? 100000000UL : \
+		 1000000000UL   \
+)
+
+static unsigned int cpumask_worst_size(unsigned int nr_bits)
+{
+	/*
+	 * Printing all the CPUs separated by a comma is a decent bound for the
+	 * maximum memory required to print a cpumask (a slightly better bound
+	 * is chunks of 2 bits set, i.e. 0-1,3-4,6-7...).
+	 *
+	 * e.g. for nr_bits=132:
+	 * - 131 commas
+	 * - 10 * 1 chars for CPUS [0, 9]
+	 * - 90 * 2 chars for CPUS [10-99]
+	 * - 32 * 3 chars for CPUS [100-131]
+	 */
+	unsigned int last_cpu = nr_bits - 1;
+	unsigned int nr_chars = nr_bits - 1;
+	int last_lvl = log10(last_cpu);
+
+	/* All log10 levels before the last one have all values used */
+	for (int lvl = 0; lvl < last_lvl; lvl++) {
+		int nr_values = ilog10(lvl + 1) - ilog10(lvl);
+
+		nr_chars += nr_values * (lvl + 1);
+	}
+	/* Last level is incomplete */
+	nr_chars += (nr_bits - ilog10(last_lvl)) * (last_lvl + 1);
+
+	return nr_chars;
+}
+
+static void print_cpumask_to_seq(struct tep_handle *tep,
+				 struct trace_seq *s, const char *format,
+				 int len_arg, const void *data, int size)
+{
+	int firstone = -1, firstzero = -1;
+	int nr_bits = size * 8;
+	bool first = true;
+	int str_size = 0;
+	char buf[12]; /* '-' + log10(2^32) + 1 digits + '\0' */
+	char *str;
+	int index;
+	int i;
+
+	str = malloc(cpumask_worst_size(nr_bits) + 1);
+	if (!str) {
+		do_warning("%s: not enough memory!", __func__);
+		return;
+	}
+
+	for (i = 0; i < size; i++) {
+		unsigned char byte;
+		int fmtsize;
+
+		if (tep->file_bigendian)
+			index = size - (i + 1);
+		else
+			index = i;
+
+		/* Byte by byte scan, not the best... */
+		byte = *(((unsigned char *)data) + index);
+more:
+		/* First find a bit set to one...*/
+		if (firstone < 0 && byte) {
+			/*
+			 * Set all lower bits, so a later ffz on this same byte
+			 * is guaranteed to find a later bit.
+			 */
+			firstone = ffs(byte) - 1;
+			byte |= (1 << firstone) - 1;
+			firstone += i * 8;
+		}
+
+		if (firstone < 0)
+			continue;
+
+		/* ...Then find a bit set to zero */
+		if ((~byte) & 0xFF) {
+			/*
+			 * Clear all lower bits, so a later ffs on this same
+			 * byte is guaranteed to find a later bit.
+			 */
+			firstzero = ffs(~byte) - 1;
+			byte &= ~((1 << (firstzero)) - 1);
+			firstzero += i * 8;
+		} else if (i == size - 1) { /* ...Or reach the end of the mask */
+			firstzero = nr_bits;
+			byte = 0;
+		} else {
+			continue;
+		}
+
+		/* We've found a bit set to one, and a later bit set to zero. */
+		if (!first) {
+			str[str_size] = ',';
+			str_size++;
+		}
+		first = false;
+
+		/* It takes {log10(number) + 1} chars to format a number */
+		fmtsize = log10(firstone) + 1;
+		snprintf(buf, fmtsize + 1, "%d", firstone);
+		memcpy(str + str_size, buf, fmtsize);
+		str_size += fmtsize;
+
+		if (firstzero > firstone + 1) {
+			fmtsize = log10(firstzero - 1) + 2;
+			snprintf(buf, fmtsize + 1, "-%d", firstzero - 1);
+			memcpy(str + str_size, buf, fmtsize);
+			str_size += fmtsize;
+		}
+
+		firstzero = firstone = -1;
+		if (byte)
+			goto more;
+	}
+
+	str[str_size] = 0;
+	str_size++;
+
+	if (len_arg >= 0)
+		trace_seq_printf(s, format, len_arg, str);
+	else
+		trace_seq_printf(s, format, str);
+
+	free(str);
+}
+
 static void print_str_arg(struct trace_seq *s, void *data, int size,
 			  struct tep_event *event, const char *format,
 			  int len_arg, struct tep_print_arg *arg)
@@ -4694,7 +4849,6 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 	case TEP_PRINT_BSTRING:
 		print_str_to_seq(s, format, len_arg, arg->string.string);
 		break;
-	case TEP_PRINT_CPUMASK:
 	case TEP_PRINT_BITMASK: {
 		if (!arg->bitmask.field) {
 			arg->bitmask.field = tep_find_any_field(event, arg->bitmask.bitmask);
@@ -4704,6 +4858,18 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 		}
 		dynamic_offset_field(tep, arg->bitmask.field, data, size, &offset, &len);
 		print_bitmask_to_seq(tep, s, format, len_arg,
+				     data + offset, len);
+		break;
+	}
+	case TEP_PRINT_CPUMASK: {
+		if (!arg->bitmask.field) {
+			arg->bitmask.field = tep_find_any_field(event, arg->bitmask.bitmask);
+			arg->bitmask.offset = arg->bitmask.field->offset;
+		}
+		if (!arg->bitmask.field)
+			break;
+		dynamic_offset_field(tep, arg->bitmask.field, data, size, &offset, &len);
+		print_cpumask_to_seq(tep, s, format, len_arg,
 				     data + offset, len);
 		break;
 	}
