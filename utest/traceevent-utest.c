@@ -140,6 +140,7 @@ static char cpumask_##name##_event_data[] = {                       \
 }
 #endif
 
+#define SIZEOF_LONG0_FMT "[FAILED TO PARSE] s4=0 u4=0 s8=0 u8=0x0"
 #define SIZEOF_LONG4_FMT "int=4 unsigned=4 unsigned int=4 long=4 unsigned long=4 long long=8 unsigned long long=8 s4=4 u4=4 s8=8 u8=8"
 #define SIZEOF_LONG8_FMT "int=4 unsigned=4 unsigned int=4 long=8 unsigned long=8 long long=8 unsigned long long=8 s4=4 u4=4 s8=8 u8=8"
 
@@ -372,6 +373,11 @@ static void test_parse_sizeof4(void)
 	test_parse_sizeof(4, 4, "sizeof4", SIZEOF_LONG4_FMT);
 }
 
+static void test_parse_sizeof_undef(void)
+{
+	test_parse_sizeof(0, 5, "sizeof_undef", SIZEOF_LONG0_FMT);
+}
+
 static int test_suite_destroy(void)
 {
 	tep_free(test_tep);
@@ -418,4 +424,6 @@ void test_traceevent_lib(void)
 		    test_parse_sizeof8);
 	CU_add_test(suite, "parse sizeof() 4byte values",
 		    test_parse_sizeof4);
+	CU_add_test(suite, "parse sizeof() no long size defined",
+		    test_parse_sizeof_undef);
 }

@@ -3544,10 +3544,17 @@ process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 		if (token && strcmp(token, "long") == 0) {
 			arg->atom.atom = strdup("8");
 		} else {
-			if (event->tep->long_size == 4)
+			switch (event->tep->long_size) {
+			case 4:
 				arg->atom.atom = strdup("4");
-			else
+				break;
+			case 8:
 				arg->atom.atom = strdup("8");
+				break;
+			default:
+				/* long size not defined yet, fail to parse it */
+				goto error;
+			}
 			/* The token is the next token */
 			ok = true;
 		}
