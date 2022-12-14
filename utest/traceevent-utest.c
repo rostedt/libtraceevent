@@ -140,6 +140,45 @@ static char cpumask_##name##_event_data[] = {                       \
 }
 #endif
 
+#define SIZEOF_LONG4_FMT "int=4 unsigned=4 unsigned int=4 long=4 unsigned long=4 long long=8 unsigned long long=8 s4=4 u4=4 s8=8 u8=8"
+#define SIZEOF_LONG8_FMT "int=4 unsigned=4 unsigned int=4 long=8 unsigned long=8 long long=8 unsigned long long=8 s4=4 u4=4 s8=8 u8=8"
+
+static const char size_of_event[] =
+	"name: sizeof_event\n"
+	"ID: 23\n"
+	"format:\n"
+	"\tfield:unsigned short common_type;\toffset:0;\tsize:2;\tsigned:0;\n"
+	"\tfield:unsigned char common_flags;\toffset:2;\tsize:1;\tsigned:0;\n"
+	"\tfield:unsigned char common_preempt_count;\toffset:3;\tsize:1;\tsigned:0;\n"
+	"\tfield:int common_pid;\toffset:4;\tsize:4;\tsigned:1;\n"
+	"\n"
+        "\tfield:int s4;\toffset:8;\tsize:4;\tsigned:1;\n"
+        "\tfield:unsigned int u4;\toffset:12;\tsize:4;\tsigned:0;\n"
+        "\tfield:long long s8;\toffset:16;\tsize:8;\tsigned:1;\n"
+        "\tfield:unsigned long long u8;\toffset:24;\tsize:8;\tsigned:0;\n"
+	"\n"
+	"print fmt: \"int=%d unsigned=%d unsigned int=%d long=%d unsigned long=%d long long=%d unsigned long long=%d s4=%d u4=%d s8=%d u8=%d\", "
+	"sizeof(int), sizeof(unsigned), sizeof(unsigned int), sizeof(long), sizeof(unsigned long), "
+	"sizeof(long long), sizeof(unsigned long long), sizeof(REC->s4), "
+	"sizeof(REC->u4), sizeof(REC->s8), sizeof(REC->u8))\n";
+static char sizeof_data[] = {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	/* common type */		23, 0x00,
+#else
+	/* common type */		0x00, 23
+#endif
+	/* common flags */		0x00,
+	/* common_preempt_count */	0x00,
+	/* common_pid */		0x00, 0x00, 0x00, 0x00,
+	/* irq */			0x00, 0x00, 0x00, 0x00,
+
+	/* s4 */			0x00, 0x00, 0x00, 0x00,
+	/* u4 */			0x00, 0x00, 0x00, 0x00,
+	/* s8 */			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	/* u8 */			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+};
+static void *sizeof_event_data = (void *)sizeof_data;
+
 DECL_CPUMASK_EVENT_DATA(full, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
 #define CPUMASK_FULL     "ARRAY[ff, ff, ff, ff, ff, ff, ff, ff]"
 #define CPUMASK_FULL_FMT "cpumask=0-63"
@@ -288,6 +327,51 @@ static void test_parse_cpumask_bytepn(void)
 		      CPUMASK_BYTEPN, CPUMASK_BYTEPN_FMT);
 }
 
+static void test_parse_sizeof(int long_size, int value, const char *system,
+			      const char *test_str)
+{
+	struct tep_event *event;
+	struct tep_record record;
+	char *sizeof_event;
+	char *p;
+
+	tep_set_long_size(test_tep, long_size);
+
+	record.data = sizeof_event_data;
+	record.size = sizeof(sizeof_data);
+
+	sizeof_event = strdup(size_of_event);
+	CU_TEST(sizeof_event != NULL);
+
+	/* Set a new id */
+	p = strstr(sizeof_event, "ID: 2");
+	p[5] = '0' + value;
+
+	/* Handles endianess */
+	*(unsigned short *)sizeof_data = 20 + value;
+
+	CU_TEST(tep_parse_format(test_tep, &event, sizeof_event,
+				 strlen(sizeof_event),
+				 system) == TEP_ERRNO__SUCCESS);
+
+	trace_seq_reset(test_seq);
+	tep_print_event(test_tep, test_seq, &record, "%s", TEP_PRINT_INFO);
+	trace_seq_do_printf(test_seq);
+	CU_TEST(strcmp(test_seq->buffer, test_str) == 0);
+
+	free(sizeof_event);
+}
+
+static void test_parse_sizeof8(void)
+{
+	test_parse_sizeof(8, 3, "sizeof8", SIZEOF_LONG8_FMT);
+}
+
+static void test_parse_sizeof4(void)
+{
+	test_parse_sizeof(4, 4, "sizeof4", SIZEOF_LONG4_FMT);
+}
+
 static int test_suite_destroy(void)
 {
 	tep_free(test_tep);
@@ -330,4 +414,8 @@ void test_traceevent_lib(void)
 		    test_parse_cpumask_bytep2);
 	CU_add_test(suite, "parse cpumask spanning all bytes",
 		    test_parse_cpumask_bytepn);
+	CU_add_test(suite, "parse sizeof() 8byte values",
+		    test_parse_sizeof8);
+	CU_add_test(suite, "parse sizeof() 4byte values",
+		    test_parse_sizeof4);
 }
