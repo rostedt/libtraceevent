@@ -3510,6 +3510,88 @@ out_free:
 }
 
 static enum tep_event_type
+process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
+{
+	struct tep_format_field *field;
+	enum tep_event_type type;
+	char *token = NULL;
+	bool ok = false;
+	int ret;
+
+	type = read_token_item(&token);
+
+	arg->type = TEP_PRINT_ATOM;
+
+	/* We handle some sizeof types */
+	if (strcmp(token, "unsigned") == 0) {
+		free_token(token);
+		type = read_token_item(&token);
+
+		if (type == TEP_EVENT_ERROR)
+			goto error;
+
+		if (type != TEP_EVENT_ITEM)
+			ok = true;
+	}
+
+	if (ok || strcmp(token, "int") == 0) {
+		arg->atom.atom = strdup("4");
+
+	} else if (strcmp(token, "long") == 0) {
+		free_token(token);
+		type = read_token_item(&token);
+
+		if (token && strcmp(token, "long") == 0) {
+			arg->atom.atom = strdup("8");
+		} else {
+			if (event->tep->long_size == 4)
+				arg->atom.atom = strdup("4");
+			else
+				arg->atom.atom = strdup("8");
+			/* The token is the next token */
+			ok = true;
+		}
+	} else if (strcmp(token, "REC") == 0) {
+
+		free_token(token);
+		type = read_token_item(&token);
+
+		if (test_type_token(type, token,  TEP_EVENT_OP, "->"))
+			goto error;
+		free_token(token);
+
+		if (read_expect_type(TEP_EVENT_ITEM, &token) < 0)
+			goto error;
+
+		field = tep_find_any_field(event, token);
+		/* Can't handle arrays (yet) */
+		if (!field || field->flags & TEP_FIELD_IS_ARRAY)
+			goto error;
+
+		ret = asprintf(&arg->atom.atom, "%d", field->size);
+		if (ret < 0)
+			goto error;
+
+	} else if (!ok) {
+		goto error;
+	}
+
+	if (!ok) {
+		free_token(token);
+		type = read_token_item(tok);
+	}
+	if (test_type_token(type, token,  TEP_EVENT_DELIM, ")"))
+		goto error;
+
+	free_token(token);
+	return read_token_item(tok);
+error:
+	free_token(token);
+	*tok = NULL;
+	return TEP_EVENT_ERROR;
+}
+
+static enum tep_event_type
 process_function(struct tep_event *event, struct tep_print_arg *arg,
 		 char *token, char **tok)
 {
@@ -3567,6 +3649,10 @@ process_function(struct tep_event *event, struct tep_print_arg *arg,
 	if (strcmp(token, "__builtin_expect") == 0) {
 		free_token(token);
 		return process_builtin_expect(event, arg, tok);
+	}
+	if (strcmp(token, "sizeof") == 0) {
+		free_token(token);
+		return process_sizeof(event, arg, tok);
 	}
 
 	func = find_func_handler(event->tep, token);
