@@ -2570,12 +2570,19 @@ static int alloc_and_process_delim(struct tep_event *event, char *next_token,
 
 	type = process_arg(event, field, &token);
 
-	if (test_type_token(type, token, TEP_EVENT_DELIM, next_token)) {
-		errno = EINVAL;
-		ret = -1;
-		free_arg(field);
-		goto out_free_token;
+	/* We do allow operators */
+	if (type == TEP_EVENT_OP) {
+		type = process_op(event, field, &token);
+
+		if (consolidate_op_arg(field) < 0)
+			type = TEP_EVENT_ERROR;
+
+		if (type == TEP_EVENT_ERROR)
+			goto out_error;
 	}
+
+	if (test_type_token(type, token, TEP_EVENT_DELIM, next_token))
+		goto out_error;
 
 	*print_arg = field;
 
@@ -2583,6 +2590,11 @@ out_free_token:
 	free_token(token);
 
 	return ret;
+out_error:
+	errno = EINVAL;
+	ret = -1;
+	free_arg(field);
+	goto out_free_token;
 }
 
 static char *arg_eval (struct tep_print_arg *arg);
