@@ -1927,7 +1927,7 @@ static int event_read_fields(struct tep_event *event, struct tep_format_field **
 
 		free_token(token);
 
-		if (field->flags & TEP_FIELD_IS_ARRAY) {
+		if (field->flags & (TEP_FIELD_IS_ARRAY | TEP_FIELD_IS_DYNAMIC)) {
 			if (field->arraylen)
 				field->elementsize = field->size / field->arraylen;
 			else if (field->flags & TEP_FIELD_IS_DYNAMIC)
