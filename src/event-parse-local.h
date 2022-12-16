@@ -85,6 +85,10 @@ struct tep_handle {
 	struct tep_event *last_event;
 
 	struct tep_plugins_dir *plugins_dir;
+
+	const char *input_buf;
+	unsigned long long input_buf_ptr;
+	unsigned long long input_buf_siz;
 };
 
 enum tep_print_parse_type {
@@ -113,11 +117,11 @@ unsigned int data2host4(struct tep_handle *tep, unsigned int data);
 unsigned long long data2host8(struct tep_handle *tep, unsigned long long data);
 
 /* access to the internal parser */
-int peek_char(void);
-void init_input_buf(const char *buf, unsigned long long size);
-unsigned long long get_input_buf_ptr(void);
-const char *get_input_buf(void);
-enum tep_event_type read_token(char **tok);
+int peek_char(struct tep_handle *tep);
+void init_input_buf(struct tep_handle *tep, const char *buf, unsigned long long size);
+unsigned long long get_input_buf_ptr(struct tep_handle *tep);
+const char *get_input_buf(struct tep_handle *tep);
+enum tep_event_type read_token(struct tep_handle *tep, char **tok);
 void free_token(char *tok);
 
 #endif /* _PARSE_EVENTS_INT_H */
