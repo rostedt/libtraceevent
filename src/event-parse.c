@@ -1303,9 +1303,14 @@ static enum tep_event_type __read_token(struct tep_handle *tep, char **tok)
 			if (ch == '\\' && last_ch == '\\')
 				last_ch = 0;
 			/* Break out if the file is corrupted and giving non print chars */
+			if (ch <= 0)
+				break;
 		} while ((ch != quote_ch && isprint(ch)) || last_ch == '\\' || ch == '\n');
 		/* remove the last quote */
 		i--;
+
+		if (ch <= 0)
+			type = TEP_EVENT_NONE;
 
 		/*
 		 * For strings (double quotes) check the next token.
