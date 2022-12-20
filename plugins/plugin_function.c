@@ -233,9 +233,11 @@ trace_stack_handler(struct trace_seq *s, struct tep_record *record,
 			break;
 
 		func = tep_find_function(event->tep, addr);
-		if (func)
-			trace_seq_printf(s, "=> %s (%llx)\n", func, addr);
-		else
+		if (func) {
+			trace_seq_puts(s, "=> ");
+			show_function(s, event->tep, func, addr);
+			trace_seq_printf(s, " (%llx)\n", addr);
+		} else
 			trace_seq_printf(s, "=> %llx\n", addr);
 	}
 
