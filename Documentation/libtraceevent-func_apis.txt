@@ -3,10 +3,8 @@ libtraceevent(3)
 
 NAME
 ----
-tep_find_function, tep_find_function_address, tep_set_function_resolver,
-tep_reset_function_resolver, tep_register_function, tep_register_print_string,
-tep_get_function_count -
-function related tep APIs
+tep_set_function_resolver, tep_reset_function_resolver, tep_register_function, tep_register_print_string,
+tep_get_function_count - function related tep APIs
 
 SYNOPSIS
 --------
@@ -17,8 +15,6 @@ SYNOPSIS
 typedef char pass:[*](*tep_func_resolver_t*)(void pass:[*]_priv_, unsigned long long pass:[*]_addrp_, char pass:[**]_modp_);
 int *tep_set_function_resolver*(struct tep_handle pass:[*]_tep_, tep_func_resolver_t pass:[*]_func_, void pass:[*]_priv_);
 void *tep_reset_function_resolver*(struct tep_handle pass:[*]_tep_);
-const char pass:[*]*tep_find_function*(struct tep_handle pass:[*]_tep_, unsigned long long _addr_);
-unsigned long long *tep_find_function_address*(struct tep_handle pass:[*]_tep_, unsigned long long _addr_);
 int *tep_register_function*(struct tep_handle pass:[*]_tep_, char pass:[*]_name_, unsigned long long _addr_, char pass:[*]_mod_);
 int *tep_register_print_string*(struct tep_handle pass:[*]_tep_, const char pass:[*]_fmt_, unsigned long long _addr_);
 int *tep_get_function_count*(struct tep_handle *_tep_)
@@ -38,8 +34,8 @@ the name of the function and its module (if any) in _modp_.
 The *tep_set_function_resolver()* function registers _func_ as an alternative
 kernel functions resolver. The _tep_ argument is trace event parser context.
 The _priv_ argument is a custom context of the _func_ function. The function
-resolver is used by the APIs *tep_find_function()*,
-*tep_find_function_address()*, and *tep_print_func_field()* to resolve
+resolver is used by the APIs *tep_find_function*(3),
+*tep_find_function_address*(3), and *tep_print_func_field()* to resolve
 a function address to a function name.
 
 The *tep_reset_function_resolver()* function resets the kernel functions
@@ -50,14 +46,6 @@ context.
 These APIs can be used to find function name and start address, by given
 address. The given address does not have to be exact, it will select
 the function that would contain it.
-
-The *tep_find_function()* function returns the function name, which contains the
-given address _addr_. The _tep_ argument is the trace event parser context.
-
-The *tep_find_function_address()* function returns the function start address,
-by given address _addr_. The _addr_ does not have to be exact, it will select
-the function that would contain it. The _tep_ argument is the trace event
-parser context.
 
 The *tep_register_function()* function registers a function name mapped to an
 address and (optional) module. This mapping is used in case the function tracer
@@ -83,12 +71,6 @@ RETURN VALUE
 ------------
 The *tep_set_function_resolver()* function returns 0 in case of success, or -1
 in case of an error.
-
-The *tep_find_function()* function returns the function name, or NULL in case
-it cannot be found.
-
-The *tep_find_function_address()* function returns the function start address,
-or 0 in case it cannot be found.
 
 The *tep_register_function()* function returns 0 in case of success. In case of
 an error -1 is returned, and errno is set to the appropriate error number.
