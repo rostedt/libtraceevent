@@ -6032,7 +6032,7 @@ static inline void print_field(struct trace_seq *s, void *data, int size,
 		if (has_0x)
 			trace_seq_puts(s, "0x");
 
-		print_parse_data(parse, s, data, field->size, event);
+		print_parse_data(parse, s, data, size, event);
 
 		if (parse_ptr)
 			*parse_ptr = parse->next;
