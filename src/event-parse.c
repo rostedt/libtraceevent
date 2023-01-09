@@ -6768,8 +6768,13 @@ static void data_latency_format(struct tep_handle *tep, struct trace_seq *s,
 	       (hardirq && softirq) ? 'H' :
 	       hardirq ? 'h' : softirq ? 's' : '.');
 
-	if (pc)
-		trace_seq_printf(&sq, "%x", pc);
+	if (pc & 0xf)
+		trace_seq_printf(&sq, "%x", pc & 0xf);
+	else
+		trace_seq_printf(&sq, ".");
+
+	if (pc & 0xf0)
+		trace_seq_printf(&sq, "%x", pc >> 4);
 	else
 		trace_seq_printf(&sq, ".");
 
