@@ -1,0 +1,18 @@
+# SPDX-License-Identifier: LGPL-2.1
+#
+# Copyright (c) 2023 Daniel Wagner, SUSE LLC
+
+option('plugindir', type : 'string',
+       description : 'set the plugin dir')
+option('htmldir', type : 'string', value : 'share/doc/libtraceevent-doc',
+       description : 'directory for HTML documentation')
+option('asciidoctor', type : 'boolean', value: false,
+       description : 'use asciidoctor instead of asciidoc')
+option('docbook-xls-172', type : 'boolean', value : false,
+       description : 'enable docbook XLS 172 workaround')
+option('asciidoc-no-roff', type : 'boolean', value : false,
+       description : 'enable no roff workaround')
+option('man-bold-literal', type : 'boolean', value : false,
+       description : 'enable bold literals')
+option('docbook-suppress-sp', type : 'boolean', value : false,
+       description : 'docbook suppress sp')
