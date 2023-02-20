@@ -45,7 +45,7 @@ static char dyn_str_data[] = {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	/* common type */		1, 0x00,
 #else
-	/* common type */		0x00, 1
+	/* common type */		0x00, 1,
 #endif
 	/* common flags */		0x00,
 	/* common_preempt_count */	0x00,
@@ -82,7 +82,7 @@ static char dyn_str_old_data[] = {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	/* common type */		2, 0x00,
 #else
-	/* common type */		0x00, 2
+	/* common type */		0x00, 2,
 #endif
 	/* common flags */		0x00,
 	/* common_preempt_count */	0x00,
@@ -166,7 +166,7 @@ static char sizeof_data[] = {
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 	/* common type */		23, 0x00,
 #else
-	/* common type */		0x00, 23
+	/* common type */		0x00, 23,
 #endif
 	/* common flags */		0x00,
 	/* common_preempt_count */	0x00,
