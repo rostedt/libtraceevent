@@ -3586,7 +3586,7 @@ process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 		if (ret < 0)
 			goto error;
 
-	} else if (!ok) {
+	} else {
 		goto error;
 	}
 
