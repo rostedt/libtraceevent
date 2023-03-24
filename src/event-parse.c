@@ -3591,8 +3591,9 @@ process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 	}
 
 	if (!ok) {
+		/* The token contains the last item before the parenthesis */
 		free_token(token);
-		type = read_token_item(event->tep, tok);
+		type = read_token_item(event->tep, &token);
 	}
 	if (test_type_token(type, token,  TEP_EVENT_DELIM, ")"))
 		goto error;
