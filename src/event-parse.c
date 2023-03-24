@@ -3522,7 +3522,7 @@ process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 	struct tep_format_field *field;
 	enum tep_event_type type;
 	char *token = NULL;
-	bool ok = false;
+	bool token_has_paren = false;
 	int ret;
 
 	type = read_token_item(event->tep, &token);
@@ -3537,11 +3537,12 @@ process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 		if (type == TEP_EVENT_ERROR)
 			goto error;
 
+		/* If it's not an item (like "long") then do not process more */
 		if (type != TEP_EVENT_ITEM)
-			ok = true;
+			token_has_paren = true;
 	}
 
-	if (ok || strcmp(token, "int") == 0) {
+	if (token_has_paren || strcmp(token, "int") == 0) {
 		arg->atom.atom = strdup("4");
 
 	} else if (strcmp(token, "long") == 0) {
@@ -3563,7 +3564,7 @@ process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 				goto error;
 			}
 			/* The token is the next token */
-			ok = true;
+			token_has_paren = true;
 		}
 	} else if (strcmp(token, "REC") == 0) {
 
@@ -3590,7 +3591,7 @@ process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 		goto error;
 	}
 
-	if (!ok) {
+	if (!token_has_paren) {
 		/* The token contains the last item before the parenthesis */
 		free_token(token);
 		type = read_token_item(event->tep, &token);
