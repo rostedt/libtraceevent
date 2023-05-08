@@ -6486,6 +6486,7 @@ static int parse_arg_format(struct tep_print_parse **parse,
 			*arg = (*arg)->next;
 			ret++;
 			return ret;
+		case 'c':
 		case 'd':
 		case 'u':
 		case 'i':
