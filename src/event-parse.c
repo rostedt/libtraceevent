@@ -5179,10 +5179,9 @@ static struct tep_print_arg *make_bprint_args(char *fmt, void *data, int size, s
 				ls = 2;
 				goto process_again;
 			case '0' ... '9':
-				goto process_again;
 			case '.':
-				goto process_again;
 			case '#':
+			case '+':
 				goto process_again;
 			case 'z':
 			case 'Z':
@@ -6443,6 +6442,7 @@ static int parse_arg_format(struct tep_print_parse **parse,
 		case '.':
 		case '0' ... '9':
 		case '-':
+		case '+':
 			break;
 		case '*':
 			/* The argument is the length. */
