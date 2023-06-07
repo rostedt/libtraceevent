@@ -6,7 +6,7 @@ project(
     'libtraceevent', ['c'],
     meson_version: '>= 0.50.0',
     license: 'LGPL-2.1',
-    version: '1.7.0',
+    version: '1.7.3',
     default_options: [
         'c_std=gnu99',
         'buildtype=debug',
