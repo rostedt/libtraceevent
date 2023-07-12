@@ -6872,6 +6872,21 @@ const char *tep_data_comm_from_pid(struct tep_handle *tep, int pid)
 	return comm;
 }
 
+/**
+ * tep_record_is_event - return true if the given record is the given event
+ * @record: The record to see is the @event
+ * @event: The event to test against @record
+ *
+ * Returns true if the record is of the given event, false otherwise
+ */
+bool tep_record_is_event(struct tep_record *record, struct tep_event *event)
+{
+	int type;
+
+	type = tep_data_type(event->tep, record);
+	return event->id == type;
+}
+
 static struct tep_cmdline *
 pid_from_cmdlist(struct tep_handle *tep, const char *comm, struct tep_cmdline *next)
 {

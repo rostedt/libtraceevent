@@ -554,6 +554,8 @@ struct tep_cmdline *tep_data_pid_from_comm(struct tep_handle *tep, const char *c
 					   struct tep_cmdline *next);
 int tep_cmdline_pid(struct tep_handle *tep, struct tep_cmdline *cmdline);
 
+bool tep_record_is_event(struct tep_record *record, struct tep_event *event);
+
 void tep_print_field_content(struct trace_seq *s, void *data, int size,
 			     struct tep_format_field *field);
 void tep_record_print_fields(struct trace_seq *s,
