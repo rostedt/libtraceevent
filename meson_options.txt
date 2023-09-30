@@ -16,3 +16,5 @@ option('man-bold-literal', type : 'boolean', value : false,
        description : 'enable bold literals')
 option('docbook-suppress-sp', type : 'boolean', value : false,
        description : 'docbook suppress sp')
+option('doc', type : 'boolean', value: true,
+       description : 'produce documentation')
