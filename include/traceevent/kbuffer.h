@@ -34,6 +34,7 @@ struct kbuffer *kbuffer_alloc(enum kbuffer_long_size size, enum kbuffer_endian e
 struct kbuffer *kbuffer_dup(struct kbuffer *kbuf);
 void kbuffer_free(struct kbuffer *kbuf);
 int kbuffer_load_subbuffer(struct kbuffer *kbuf, void *subbuffer);
+int kbuffer_refresh(struct kbuffer *kbuf);
 void *kbuffer_read_event(struct kbuffer *kbuf, unsigned long long *ts);
 void *kbuffer_next_event(struct kbuffer *kbuf, unsigned long long *ts);
 unsigned long long kbuffer_timestamp(struct kbuffer *kbuf);

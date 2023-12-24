@@ -186,6 +186,7 @@ kbuffer parsing:
 	int *kbuffer_load_subbuffer*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_subbuffer_);
 	int *kbuffer_subbuffer_size*(struct kbuffer pass:[*]_kbuf);
 	void pass:[*]*kbuffer_subbuffer*(struct kbuffer pass:[*]_kbuf);
+	int *kbuffer_refresh*(struct kbuffer pass:[*]_kbuf_);
 	int *kbuffer_start_of_data*(struct kbuffer pass:[*]_kbuf_);
 	unsigned long long *kbuffer_timestamp*(struct kbuffer pass:[*]_kbuf_);
 	unsigned long long *kbuffer_subbuf_timestamp*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_subbuf_);

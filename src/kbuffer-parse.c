@@ -299,6 +299,26 @@ void kbuffer_free(struct kbuffer *kbuf)
 	free(kbuf);
 }
 
+/**
+ * kbuffer_refresh - update the meta data from the subbuffer
+ * @kbuf; The kbuffer to update
+ *
+ * If the loaded subbuffer changed its meta data (the commit)
+ * then update the pointers for it.
+ */
+int kbuffer_refresh(struct kbuffer *kbuf)
+{
+	unsigned long long flags;
+
+	if (!kbuf || !kbuf->subbuffer)
+		return -1;
+
+	flags = read_long(kbuf, kbuf->subbuffer + 8);
+	kbuf->size = (unsigned int)flags & COMMIT_MASK;
+
+	return 0;
+}
+
 static unsigned int type4host(struct kbuffer *kbuf,
 			      unsigned int type_len_ts)
 {

@@ -4,7 +4,7 @@ libtraceevent(3)
 NAME
 ----
 kbuffer_alloc, kbuffer_dup, kbuffer_free, kbuffer_load_subbuffer, kbuffer_subbuffer,
-kbuffer_subbuffer_size, kbuffer_start_of_data - Creating of kbuffer element to parse
+kbuffer_refresh, kbuffer_subbuffer_size, kbuffer_start_of_data - Creating of kbuffer element to parse
 the Linux kernel tracing ring buffer
 
 SYNOPSIS
@@ -32,7 +32,8 @@ struct kbuffer pass:[*]*kbuffer_alloc*(enum kbuffer_long_size _size_, enum kbuff
 struct kbuffer pass:[*]*kbuffer_dup*(struct kbuffer pass:[*]_kbuf_);
 void *kbuffer_free*(struct kbuffer pass:[*]_kbuf_);
 int *kbuffer_load_subbuffer*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_subbuffer_);
-int *kbuffer_subbuffer_size*(struct kbuffer pass:[*]_kbuf);
+int *kbuffer_subbuffer_size*(struct kbuffer pass:[*]_kbuf_);
+int *kbuffer_refresh*(struct kbuffer pass:[*]_kbuf_);
 int *kbuffer_start_of_data*(struct kbuffer pass:[*]_kbuf_);
 void pass:[*]*kbuffer_subbuffer*(struct kbuffer pass:[*]_kbuf);
 --
@@ -78,6 +79,13 @@ is what kbuffer uses to walk the events.
 The *kbuffer_subbuffer_size()* returns the location of the end of the last event
 on the sub-buffer. It does not return the size of the sub-buffer itself.
 
+The *kbuffer_refresh()* is to be used if more writes were done on the loaded kbuffer
+where the size of the kbuffer needs to be refreshed to be able to read the new
+events that were written since the last *kbuffer_load_subbuffer()* was called on it.
+
+Note, no memory barriers are implemented with this function and any synchronization
+with the writer is the responsibility of the application.
+
 The *kbuffer_start_of_data()* function returns the offset of where the actual
 data load of the sub-buffer begins.
 
@@ -100,6 +108,9 @@ sub-buffer loaded in _kbuf_.
 
 *kbuffer_subbuffer()* returns the last loaded subbuffer to _kbuf_ that was loaded
 by *kbuffer_load_subbuffer()* or NULL if none was loaded.
+
+*kbuffer_refresh()* returns 0 on success and -1 if _kbuf_ is NULL or it does not
+have a subbuffer loaded via *kbuffer_load_subbuffer()*.
 
 EXAMPLE
 -------
