@@ -748,6 +748,17 @@ int kbuffer_subbuffer_size(struct kbuffer *kbuf)
 }
 
 /**
+ * kbuffer_subbuffer - the currently loaded subbuffer
+ * @kbuf:	The kbuffer to read from
+ *
+ * Returns the currently loaded subbuffer.
+ */
+void *kbuffer_subbuffer(struct kbuffer *kbuf)
+{
+	return kbuf->subbuffer;
+}
+
+/**
  * kbuffer_curr_index - Return the index of the record
  * @kbuf:	The kbuffer to read from
  *
