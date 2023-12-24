@@ -4,7 +4,7 @@ libtraceevent(3)
 NAME
 ----
 kbuffer_read_event, kbuffer_next_event, kbuffer_missed_events, kbuffer_event_size, kbuffer_curr_size,
-kbuffer_curr_offset, kbuffer_curr_index -
+kbuffer_curr_offset, kbuffer_curr_index, kbuffer_read_buffer -
 Functions to read through the kbuffer sub buffer.
 
 SYNOPSIS
@@ -21,6 +21,7 @@ int *kbuffer_event_size*(struct kbuffer pass:[*]_kbuf_);
 int *kbuffer_curr_size*(struct kbuffer pass:[*]_kbuf_);
 int *kbuffer_curr_offset*(struct kbuffer pass:[*]_kbuf_);
 int *kbuffer_curr_index*(struct kbuffer pass:[*]_kbuf_);
+int *kbuffer_read_buffer*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_buffer_, int _len_);
 --
 
 DESCRIPTION
@@ -64,6 +65,18 @@ The *kbuffer_curr_index()* function returns the index from the beginning of the 
 portion of the sub-buffer where the current evnet's meta data is located.
 The first event will likely be zero, but may not be if there's a timestamp attached to it.
 
+The *kbuffer_read_buffer()* function will fill the given _buffer_ from the _kbuf_ the same
+way the kernel would do a read system call. That is, if the length _len_ is less than the
+sub buffer size, or the kbuffer current index is non-zero, it will start copying from the
+_kbuf_ current event and create _buffer_ as a new sub buffer (with a timestamp
+and commit header) with that event that was found and including all events after that can
+fit within _len_. The _len_ must include the size of the sub buffer header as well as the
+events to include. That is, _len_ is the allocate size of _buffer_ that can be filled.
+The return from this function is the index of the end of the last event that was added.
+If there are no more events then zero is returned, and if the buffer can not
+copy any events because _len_ was too small, then -1 is returned.
+
+
 RETURN VALUE
 ------------
 *kbuffer_read_event()* returns the event that the _kbuf_ descriptor is currently at,
@@ -91,6 +104,10 @@ sub-buffer.
 
 *kbuf_curr_index()* returns the index of the current record from the beginning of the _kbuf_
 data section.
+
+*kbuf_read_buffer()* returns the index of the end of the last event that was filled in
+_buffer_. If there are no more events to copy from _start_ then 0 is returned. If _len_
+is not big enough to hold any events, then -1 is returned.
 
 EXAMPLE
 -------

@@ -195,6 +195,7 @@ kbuffer parsing:
 	int *kbuffer_curr_size*(struct kbuffer pass:[*]_kbuf_);
 	int *kbuffer_curr_offset*(struct kbuffer pass:[*]_kbuf_);
 	int *kbuffer_curr_index*(struct kbuffer pass:[*]_kbuf_);
+	int *kbuffer_read_buffer*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_buffer_, int _start_, int _len_);
 --
 
 DESCRIPTION
