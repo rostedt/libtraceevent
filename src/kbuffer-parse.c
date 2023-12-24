@@ -269,6 +269,26 @@ kbuffer_alloc(enum kbuffer_long_size size, enum kbuffer_endian endian)
 	return kbuf;
 }
 
+/**
+ * kbuffer_dup - duplicate a given kbuffer
+ * @kbuf_orig; The kbuffer to duplicate
+ *
+ * Allocates a new kbuffer based off of anothe kbuffer.
+ * Returns the duplicate on success or NULL on error.
+ */
+struct kbuffer *kbuffer_dup(struct kbuffer *kbuf_orig)
+{
+	struct kbuffer *kbuf;
+
+	kbuf = malloc(sizeof(*kbuf));
+	if (!kbuf)
+		return NULL;
+
+	*kbuf = *kbuf_orig;
+
+	return kbuf;
+}
+
 /** kbuffer_free - free an allocated kbuffer
  * @kbuf:	The kbuffer to free
  *

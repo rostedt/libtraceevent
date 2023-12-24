@@ -181,6 +181,7 @@ Trace sequences:
 kbuffer parsing:
 #include <kbuffer.h>
 	struct kbuffer pass:[*]*kbuffer_alloc*(enum kbuffer_long_size _size_, enum kbuffer_endian _endian_);
+	struct kbuffer pass:[*]*kbuffer_dup*(struct kbuffer pass:[*]_kbuf_);
 	void *kbuffer_free*(struct kbuffer pass:[*]_kbuf_);
 	int *kbuffer_load_subbuffer*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_subbuffer_);
 	int *kbuffer_subbuffer_size*(struct kbuffer pass:[*]_kbuf);

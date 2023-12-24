@@ -3,7 +3,7 @@ libtraceevent(3)
 
 NAME
 ----
-kbuffer_alloc, kbuffer_free, kbuffer_load_subbuffer, kbuffer_subbuffer_size, kbuffer_start_of_data - Creating of kbuffer element to parse
+kbuffer_alloc, kbuffer_dup, kbuffer_free, kbuffer_load_subbuffer, kbuffer_subbuffer_size, kbuffer_start_of_data - Creating of kbuffer element to parse
 the Linux kernel tracing ring buffer
 
 SYNOPSIS
@@ -28,6 +28,7 @@ struct kbuffer;
 struct tep_handle;
 
 struct kbuffer pass:[*]*kbuffer_alloc*(enum kbuffer_long_size _size_, enum kbuffer_endian _endian_);
+struct kbuffer pass:[*]*kbuffer_dup*(struct kbuffer pass:[*]_kbuf_);
 void *kbuffer_free*(struct kbuffer pass:[*]_kbuf_);
 int *kbuffer_load_subbuffer*(struct kbuffer pass:[*]_kbuf_, void pass:[*]_subbuffer_);
 int *kbuffer_subbuffer_size*(struct kbuffer pass:[*]_kbuf);
@@ -58,6 +59,11 @@ set the kbuffer descriptor to long size of 8. But if the size is 4, then it
 will then perform a *uname(2)* call, and if the _machine_ field has the string "64"
 in it, it will be set to 8 byte long size and not 4 byte. This is because the
 ring buffer long size is dependent on the kernel and not user space.
+
+The *kbuffer_dup()* function will duplicate an existing kbuffer structure with
+an allocated new one. It will have all the properties of the passed in _kbuf_,
+including pointing to the same subbuffer that was loaded in the _kbuf_.
+It must be freed with *kbuffer_free()*.
 
 The *kbuffer_free()* function will free the resources created by *kbuffer_alloc()*.
 
