@@ -137,6 +137,11 @@ struct kbuffer *tep_kbuffer(struct tep_handle *tep)
 	int long_size;
 
 	long_size = tep_get_long_size(tep);
+
+	/* If the long_size is not set, then use the commit size */
+	if (!long_size)
+		long_size = tep_get_header_page_size(tep);
+
 	if (long_size == 8)
 		long_size = KBUFFER_LSIZE_8;
 	else
