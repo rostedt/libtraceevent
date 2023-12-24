@@ -278,6 +278,21 @@ int tep_get_sub_buffer_size(struct tep_handle *tep)
 }
 
 /**
+ * tep_get_sub_buffer_commit_offset - return offset of the commit location
+ * @tep: the handle to the tep_handle
+ *
+ * Returns the offset of where to find the "commit" field of the offset.
+ * Use tep_get_header_page_size() to find the size of the commit field.
+ */
+int tep_get_sub_buffer_commit_offset(struct tep_handle *tep)
+{
+	if (!tep)
+		return -1;
+
+	return tep->header_page_size_offset;
+}
+
+/**
  * tep_is_file_bigendian - return the endian of the file
  * @tep: a handle to the tep_handle
  *

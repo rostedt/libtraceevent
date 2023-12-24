@@ -15,6 +15,7 @@ SYNOPSIS
 int *tep_get_page_size*(struct tep_handle pass:[*]_tep_);
 void *tep_set_page_size*(struct tep_handle pass:[*]_tep_, int _page_size_);
 int *tep_get_sub_buffer_size*(struct tep_handle pass:[*]_tep_);
+int *tep_get_sub_buffer_commit_offset*(struct tep_handle pass:[*]_tep_);
 --
 
 DESCRIPTION
@@ -32,12 +33,20 @@ The *tep_get_sub_buffer_size()* returns the size of each "sub buffer" of the
 ring buffer. The Linux kernel ring buffer is broken up into sections called
 sub buffers. This returns the size of those buffers.
 
+The *tep_get_sub_buffer_commit_offset()* returns the offset on the sub buffer
+that holds the committed portion of data. This number contains the index from
+the data portion of the sub buffer that is the end of the last element on the
+sub buffer.
+
 RETURN VALUE
 ------------
 The *tep_get_page_size()* function returns size of the memory page, in bytes.
 
 The *tep_get_sub_buffer_size()* function returns the number of bytes each sub
 buffer is made up of.
+
+The *tep_get_sub_buffer_commit_offset()* function returns the location on the
+sub buffer that contains the index of the last element.
 
 EXAMPLE
 -------
