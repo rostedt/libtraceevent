@@ -263,6 +263,20 @@ void tep_set_page_size(struct tep_handle *tep, int _page_size)
 }
 
 /**
+ * tep_get_sub_buffer_data_size - get the size of the data portion
+ * @tep: The handle to the tep to get the data size from
+ *
+ * Returns the size of the data portion of the sub buffer
+ */
+int tep_get_sub_buffer_data_size(struct tep_handle *tep)
+{
+	if (!tep)
+		return -1;
+
+	return tep->header_page_data_size;
+}
+
+/**
  * tep_get_sub_buffer_size - get the size of a trace buffer page
  * @tep: a handle to the tep_handle
  *

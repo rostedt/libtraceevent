@@ -3,7 +3,7 @@ libtraceevent(3)
 
 NAME
 ----
-tep_get_page_size, tep_set_page_size, tep_get_sub_buffer_size - Get / set the size of a memory page on
+tep_get_page_size, tep_set_page_size, tep_get_sub_buffer_data_size, tep_get_sub_buffer_size - Get / set the size of a memory page on
 the machine, where the trace is generated
 
 SYNOPSIS
@@ -15,6 +15,7 @@ SYNOPSIS
 int *tep_get_page_size*(struct tep_handle pass:[*]_tep_);
 void *tep_set_page_size*(struct tep_handle pass:[*]_tep_, int _page_size_);
 int *tep_get_sub_buffer_size*(struct tep_handle pass:[*]_tep_);
+int *tep_get_sub_buffer_data_size*(struct tep_handle pass:[*]_tep_);
 int *tep_get_sub_buffer_commit_offset*(struct tep_handle pass:[*]_tep_);
 --
 
@@ -32,6 +33,9 @@ The _page_size_ argument is the size of a memory page, in bytes.
 The *tep_get_sub_buffer_size()* returns the size of each "sub buffer" of the
 ring buffer. The Linux kernel ring buffer is broken up into sections called
 sub buffers. This returns the size of those buffers.
+
+The *tep_get_sub_buffer_data_size()* returns the size of just the data portion
+of the sub buffers.
 
 The *tep_get_sub_buffer_commit_offset()* returns the offset on the sub buffer
 that holds the committed portion of data. This number contains the index from

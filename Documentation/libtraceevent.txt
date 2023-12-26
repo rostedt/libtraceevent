@@ -27,6 +27,7 @@ Management of tep handler data structure and access of its members:
 	int *tep_get_page_size*(struct tep_handle pass:[*]_tep_);
 	void *tep_set_page_size*(struct tep_handle pass:[*]_tep_, int _page_size_);
 	int *tep_get_sub_buffer_size*(struct tep_handle pass:[*]_tep_);
+	int *tep_get_sub_buffer_data_size*(struct tep_handle pass:[*]_tep_);
 	int *tep_get_sub_buffer_commit_offset*(struct tep_handle pass:[*]_tep_);
 	int *tep_get_header_page_size*(struct tep_handle pass:[*]_tep_);
 	int *tep_get_header_timestamp_size*(struct tep_handle pass:[*]_tep_);
