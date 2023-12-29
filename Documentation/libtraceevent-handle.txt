@@ -17,6 +17,7 @@ void *tep_free*(struct tep_handle pass:[*]_tep_);
 void *tep_ref*(struct tep_handle pass:[*]_tep_);
 void *tep_unref*(struct tep_handle pass:[*]_tep_);
 int *tep_get_ref*(struct tep_handle pass:[*]_tep_);
+struct kbuffer pass:[*]*tep_kbuffer*(struct tep_handle pass:[*]_tep_);
 --
 
 DESCRIPTION
