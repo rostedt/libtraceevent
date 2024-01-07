@@ -13,10 +13,14 @@ sources= [
    'trace-seq.c',
 ]
 
+cc = meson.get_compiler('c')
+dl_dep = cc.find_library('dl')
+
 libtraceevent = library(
     'traceevent',
     sources,
     version: library_version,
+    dependencies: [dl_dep],
     include_directories: [incdir],
     install: true)
 
