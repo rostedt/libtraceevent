@@ -180,6 +180,7 @@ static int calc_index(struct kbuffer *kbuf, void *ptr)
 	return (unsigned long)ptr - (unsigned long)kbuf->data;
 }
 
+static int next_event(struct kbuffer *kbuf);
 static int __next_event(struct kbuffer *kbuf);
 
 /*
@@ -309,12 +310,19 @@ void kbuffer_free(struct kbuffer *kbuf)
 int kbuffer_refresh(struct kbuffer *kbuf)
 {
 	unsigned long long flags;
+	unsigned int old_size;
 
 	if (!kbuf || !kbuf->subbuffer)
 		return -1;
 
+	old_size = kbuf->size;
+
 	flags = read_long(kbuf, kbuf->subbuffer + 8);
 	kbuf->size = (unsigned int)flags & COMMIT_MASK;
+
+	/* Update next to be the next element */
+	if (kbuf->size != old_size && kbuf->curr == kbuf->next)
+		next_event(kbuf);
 
 	return 0;
 }
