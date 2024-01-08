@@ -947,18 +947,11 @@ kbuffer_raw_get(struct kbuffer *kbuf, void *subbuf, struct kbuffer_raw_info *inf
  */
 int kbuffer_read_buffer(struct kbuffer *kbuf, void *buffer, int len)
 {
-	int subbuf_size = kbuf->start + kbuf->size;
 	unsigned long long ts;
 	unsigned int type_len_ts;
 	bool do_swap = false;
 	int last_next;
 	int save_curr;
-
-	if (!kbuf->curr && len >= subbuf_size) {
-		memcpy(buffer, kbuf->subbuffer, subbuf_size);
-		set_curr_to_end(kbuf);
-		return kbuf->size;
-	}
 
 	/* Are we at the end of the buffer */
 	if (kbuf->curr >= kbuf->size)
@@ -982,24 +975,13 @@ int kbuffer_read_buffer(struct kbuffer *kbuf, void *buffer, int len)
 
 	save_curr = kbuf->curr;
 
-	/* Copy the rest of the buffer if it fits */
-	if (len >= kbuf->size - kbuf->curr) {
-		set_curr_to_end(kbuf);
-		last_next = kbuf->size;
-	} else {
-		/*
-		 * The length doesn't hold the rest,
-		 * need to find the last that fits
-		 */
+	/* Due to timestamps, we must save the current next to use */
+	last_next = kbuf->next;
 
-		/* Due to timestamps, we must save the current next to use */
+	while (len >= kbuf->next - save_curr) {
 		last_next = kbuf->next;
-
-		while (len > kbuf->next - save_curr) {
-			last_next = kbuf->next;
-			if (!kbuffer_next_event(kbuf, &ts))
-				break;
-		}
+		if (!kbuffer_next_event(kbuf, &ts))
+			break;
 	}
 
 	len = last_next - save_curr;
