@@ -6,6 +6,7 @@
  *   Copyright (C) 2021, VMware, Steven Rostedt <rostedt@goodmis.org>
  *
  */
+#include <libgen.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <getopt.h>
