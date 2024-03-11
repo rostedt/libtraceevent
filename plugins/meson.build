@@ -19,11 +19,10 @@ plugins = [
 
 pdeps = []
 foreach plugin : plugins
-    pdeps += library(
+    pdeps += shared_module(
         plugin.replace('.c', ''),
         plugin,
         name_prefix: '',
-        version: library_version,
         dependencies: [libtraceevent_dep],
         include_directories: [incdir],
         install: true,

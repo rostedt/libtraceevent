@@ -25,7 +25,7 @@ htmldir = join_paths(prefixdir, get_option('htmldir'))
 libdir = join_paths(prefixdir, get_option('libdir'))
 plugindir = get_option('plugindir')
 if plugindir == ''
-    plugindir = join_paths(libdir, 'libtraceevent/plugins')
+    plugindir = join_paths(libdir, 'traceevent/plugins')
 endif
 
 add_project_arguments(
