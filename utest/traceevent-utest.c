@@ -216,7 +216,7 @@ DECL_CPUMASK_EVENT_DATA(bytep2, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x01);
 #define CPUMASK_BYTEP2_FMT "cpumask=0,23"
 
 DECL_CPUMASK_EVENT_DATA(bytepn, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01);
-#define CPUMASK_BYTEPN     "ARRAY[80, 00, 00, 00, 00, 00, 80, 01]"
+#define CPUMASK_BYTEPN     "ARRAY[80, 00, 00, 00, 00, 00, 00, 01]"
 #define CPUMASK_BYTEPN_FMT "cpumask=0,63"
 #endif
 
@@ -392,6 +392,9 @@ static int test_suite_init(void)
 	test_tep = tep_alloc();
 	if (!test_tep)
 		return 1;
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	tep_set_file_bigendian(test_tep, TEP_BIG_ENDIAN);
+#endif
 	return 0;
 }
 
