@@ -3732,8 +3732,19 @@ process_arg_token(struct tep_event *event, struct tep_print_arg *arg,
 		arg->atom.atom = atom;
 		break;
 
-	case TEP_EVENT_DQUOTE:
 	case TEP_EVENT_SQUOTE:
+		arg->type = TEP_PRINT_ATOM;
+		/* Make characters into numbers */
+		if (asprintf(&arg->atom.atom, "%d", token[0]) < 0) {
+			free_token(token);
+			*tok = NULL;
+			arg->atom.atom = NULL;
+			return TEP_EVENT_ERROR;
+		}
+		free_token(token);
+		type = read_token_item(event->tep, &token);
+		break;
+	case TEP_EVENT_DQUOTE:
 		arg->type = TEP_PRINT_ATOM;
 		arg->atom.atom = token;
 		type = read_token_item(event->tep, &token);
