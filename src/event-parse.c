@@ -1232,9 +1232,11 @@ static enum tep_event_type __read_token(struct tep_handle *tep, char **tok)
 	switch (type) {
 	case TEP_EVENT_NEWLINE:
 	case TEP_EVENT_DELIM:
-		if (asprintf(tok, "%c", ch) < 0)
+		*tok = malloc(2);
+		if (!*tok)
 			return TEP_EVENT_ERROR;
-
+		(*tok)[0] = ch;
+		(*tok)[1] = '\0';
 		return type;
 
 	case TEP_EVENT_OP:
