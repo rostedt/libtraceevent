@@ -327,7 +327,7 @@ int tep_plugin_add_option(const char *name, const char *val)
 		return -ENOMEM;
 
 	if (parse_option_name(&option_str, &plugin) < 0)
-		return -ENOMEM;
+		goto out_free;
 
 	/* If the option exists, update the val */
 	for (op = trace_plugin_options; op; op = op->next) {
