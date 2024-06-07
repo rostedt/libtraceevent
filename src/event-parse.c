@@ -2963,7 +2963,7 @@ process_fields(struct tep_event *event, struct tep_print_flag_sym **list, char *
 		free_arg(arg);
 		arg = alloc_arg();
 		if (!arg)
-			goto out_free;
+			goto out_free_field;
 
 		free_token(token);
 		type = process_arg(event, arg, &token);
