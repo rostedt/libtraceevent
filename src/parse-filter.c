@@ -1704,8 +1704,8 @@ static const char *get_field_str(struct tep_filter_arg *arg, struct tep_record *
 	struct tep_handle *tep;
 	unsigned long long addr;
 	const char *val = NULL;
+	static char hex[64];
 	unsigned int size;
-	char hex[64];
 
 	/* If the field is not a string convert it */
 	if (arg->str.field->flags & TEP_FIELD_IS_STRING) {
