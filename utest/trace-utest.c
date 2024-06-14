@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 {
 	CU_BasicRunMode verbose = CU_BRM_VERBOSE;
 	enum unit_tests tests = RUN_NONE;
+	int failed_tests;
 
 	for (;;) {
 		int c;
@@ -82,6 +83,7 @@ int main(int argc, char **argv)
 
 	CU_basic_set_mode(verbose);
 	CU_basic_run_tests();
+	failed_tests = CU_get_number_of_tests_failed();
 	CU_cleanup_registry();
-	return 0;
+	return failed_tests != 0;
 }
