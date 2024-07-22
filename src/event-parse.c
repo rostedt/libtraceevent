@@ -2197,21 +2197,24 @@ static int set_op_prio(struct tep_print_arg *arg)
 	return arg->op.prio;
 }
 
-static int consolidate_op_arg(struct tep_print_arg *arg)
+static int consolidate_op_arg(enum tep_event_type type, struct tep_print_arg *arg)
 {
 	unsigned long long val, left, right;
 	int ret = 0;
+
+	if (type == TEP_EVENT_ERROR)
+		return -1;
 
 	if (arg->type != TEP_PRINT_OP)
 		return 0;
 
 	if (arg->op.left)
-		ret = consolidate_op_arg(arg->op.left);
+		ret = consolidate_op_arg(type, arg->op.left);
 	if (ret < 0)
 		return ret;
 
 	if (arg->op.right)
-		ret = consolidate_op_arg(arg->op.right);
+		ret = consolidate_op_arg(type, arg->op.right);
 	if (ret < 0)
 		return ret;
 
@@ -2375,8 +2378,6 @@ process_op(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 
 		/* it will set arg->op.right */
 		type = process_cond(event, arg, tok);
-		if (type == TEP_EVENT_ERROR)
-			free(token);
 
 	} else if (strcmp(token, ">>") == 0 ||
 		   strcmp(token, "<<") == 0 ||
@@ -2587,7 +2588,7 @@ static int alloc_and_process_delim(struct tep_event *event, char *next_token,
 	if (type == TEP_EVENT_OP) {
 		type = process_op(event, field, &token);
 
-		if (consolidate_op_arg(field) < 0)
+		if (consolidate_op_arg(type, field) < 0)
 			type = TEP_EVENT_ERROR;
 
 		if (type == TEP_EVENT_ERROR)
@@ -3818,7 +3819,7 @@ static int event_read_print_args(struct tep_event *event, struct tep_print_arg *
 			type = process_op(event, arg, &token);
 			free_token(token);
 
-			if (consolidate_op_arg(arg) < 0)
+			if (consolidate_op_arg(type, arg) < 0)
 				type = TEP_EVENT_ERROR;
 
 			if (type == TEP_EVENT_ERROR) {
