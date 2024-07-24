@@ -352,7 +352,7 @@ install_headers:
 
 install: install_libs
 
-clean: clean_plugins clean_src
+clean: clean_plugins clean_src clean_meson
 	$(Q)$(call do_clean,\
 	    $(VERSION_FILE) $(obj)/tags $(obj)/TAGS $(PKG_CONFIG_FILE) \
 	    $(LIBTRACEEVENT_STATIC) $(LIBTRACEEVENT_SHARED) \
@@ -435,6 +435,19 @@ clean_plugins:
 PHONY += clean_src
 clean_src:
 	$(Q)$(call descend_clean,src)
+
+meson:
+	$(MAKE) -f Makefile.meson
+
+meson_install:
+	$(MAKE) -f Makefile.meson install
+
+meson_docs:
+	$(MAKE) -f Makefile.meson docs
+
+PHONY += clean_meson
+clean_meson:
+	$(Q)$(MAKE) -f Makefile.meson $@
 
 force:
 
