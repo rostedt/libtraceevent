@@ -6020,11 +6020,11 @@ static void print_field_raw(struct trace_seq *s, void *data, int size,
 }
 
 static int print_parse_data(struct tep_print_parse *parse, struct trace_seq *s,
-			    void *data, int size, struct tep_event *event);
+			    void *data, int size, struct tep_event *event, bool raw);
 
 static inline void print_field(struct trace_seq *s, void *data, int size,
 				    struct tep_format_field *field,
-				    struct tep_print_parse **parse_ptr)
+				    struct tep_print_parse **parse_ptr, bool raw)
 {
 	struct tep_event *event = field->event;
 	struct tep_print_parse *start_parse;
@@ -6068,7 +6068,7 @@ static inline void print_field(struct trace_seq *s, void *data, int size,
 		if (has_0x)
 			trace_seq_puts(s, "0x");
 
-		print_parse_data(parse, s, data, size, event);
+		print_parse_data(parse, s, data, size, event, raw);
 
 		if (parse_ptr)
 			*parse_ptr = parse->next;
@@ -6100,7 +6100,7 @@ static inline void print_field(struct trace_seq *s, void *data, int size,
 void tep_print_field_content(struct trace_seq *s, void *data, int size,
 			     struct tep_format_field *field)
 {
-	print_field(s, data, size, field, NULL);
+	print_field(s, data, size, field, NULL, false);
 }
 
 /** DEPRECATED **/
@@ -6108,13 +6108,13 @@ void tep_print_field(struct trace_seq *s, void *data,
 		     struct tep_format_field *field)
 {
 	/* unsafe to use, should pass in size */
-	print_field(s, data, 4096, field, NULL);
+	print_field(s, data, 4096, field, NULL, false);
 }
 
 static inline void
 print_selected_fields(struct trace_seq *s, void *data, int size,
 		      struct tep_event *event,
-		      unsigned long long ignore_mask)
+		      unsigned long long ignore_mask, bool raw)
 {
 	struct tep_print_parse *parse = event->print_fmt.print_cache;
 	struct tep_format_field *field;
@@ -6126,14 +6126,14 @@ print_selected_fields(struct trace_seq *s, void *data, int size,
 			continue;
 
 		trace_seq_printf(s, " %s=", field->name);
-		print_field(s, data, size, field, &parse);
+		print_field(s, data, size, field, &parse, raw);
 	}
 }
 
 void tep_print_fields(struct trace_seq *s, void *data,
 		      int size, struct tep_event *event)
 {
-	print_selected_fields(s, data, size, event, 0);
+	print_selected_fields(s, data, size, event, 0, false);
 }
 
 /**
@@ -6147,7 +6147,7 @@ void tep_record_print_fields(struct trace_seq *s,
 			     struct tep_record *record,
 			     struct tep_event *event)
 {
-	print_selected_fields(s, record->data, record->size, event, 0);
+	print_selected_fields(s, record->data, record->size, event, 0, false);
 }
 
 /**
@@ -6165,12 +6165,12 @@ void tep_record_print_selected_fields(struct trace_seq *s,
 {
 	unsigned long long ignore_mask = ~select_mask;
 
-	print_selected_fields(s, record->data, record->size, event, ignore_mask);
+	print_selected_fields(s, record->data, record->size, event, ignore_mask, false);
 }
 
 static int print_function(struct trace_seq *s, const char *format,
 			  void *data, int size, struct tep_event *event,
-			  struct tep_print_arg *arg)
+			  struct tep_print_arg *arg, bool raw)
 {
 	struct func_map *func;
 	unsigned long long val;
@@ -6181,11 +6181,17 @@ static int print_function(struct trace_seq *s, const char *format,
 		trace_seq_puts(s, func->func);
 		if (*format == 'F' || *format == 'S')
 			trace_seq_printf(s, "+0x%llx", val - func->addr);
-	} else {
+	}
+
+	if (!func || raw) {
+		if (raw)
+			trace_seq_puts(s, " (");
 		if (event->tep->long_size == 4)
 			trace_seq_printf(s, "0x%lx", (long)val);
 		else
 			trace_seq_printf(s, "0x%llx", (long long)val);
+		if (raw)
+			trace_seq_puts(s, ")");
 	}
 
 	return 0;
@@ -6193,7 +6199,8 @@ static int print_function(struct trace_seq *s, const char *format,
 
 static int print_arg_pointer(struct trace_seq *s, const char *format, int plen,
 			     void *data, int size,
-			     struct tep_event *event, struct tep_print_arg *arg)
+			     struct tep_event *event, struct tep_print_arg *arg,
+			     bool raw)
 {
 	unsigned long long val;
 	int ret = 1;
@@ -6215,7 +6222,7 @@ static int print_arg_pointer(struct trace_seq *s, const char *format, int plen,
 	case 'f':
 	case 'S':
 	case 's':
-		ret += print_function(s, format, data, size, event, arg);
+		ret += print_function(s, format, data, size, event, arg, raw);
 		break;
 	case 'M':
 	case 'm':
@@ -6679,7 +6686,7 @@ parse_args(struct tep_event *event, const char *format, struct tep_print_arg *ar
 }
 
 static int print_parse_data(struct tep_print_parse *parse, struct trace_seq *s,
-			    void *data, int size, struct tep_event *event)
+			    void *data, int size, struct tep_event *event, bool raw)
 {
 	int len_arg;
 
@@ -6695,7 +6702,7 @@ static int print_parse_data(struct tep_print_parse *parse, struct trace_seq *s,
 	case PRINT_FMT_ARG_POINTER:
 		print_arg_pointer(s, parse->format,
 				  parse->len_as_arg ? len_arg : 1,
-				  data, size, event, parse->arg);
+				  data, size, event, parse->arg, raw);
 		break;
 	case PRINT_FMT_ARG_STRING:
 		print_arg_string(s, parse->format,
@@ -6716,7 +6723,7 @@ static void print_event_cache(struct tep_print_parse *parse, struct trace_seq *s
 			      void *data, int size, struct tep_event *event)
 {
 	while (parse) {
-		print_parse_data(parse, s, data, size, event);
+		print_parse_data(parse, s, data, size, event, false);
 		parse = parse->next;
 	}
 }
@@ -7023,7 +7030,7 @@ static void print_event_info(struct trace_seq *s, char *format, bool raw,
 	int print_pretty = 1;
 
 	if (raw || (event->flags & TEP_EVENT_FL_PRINTRAW))
-		tep_print_fields(s, record->data, record->size, event);
+		print_selected_fields(s, record->data, record->size, event, 0, true);
 	else {
 
 		if (event->handler && !(event->flags & TEP_EVENT_FL_NOHANDLE))
