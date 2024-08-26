@@ -4938,18 +4938,19 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 		len = eval_num_arg(data, size, event, arg->int_array.count);
 		el_size = eval_num_arg(data, size, event,
 				       arg->int_array.el_size);
+		trace_seq_putc(s, '{');
 		for (i = 0; i < len; i++) {
 			if (i)
-				trace_seq_putc(s, ' ');
+				trace_seq_putc(s, ',');
 
 			if (el_size == 1) {
-				trace_seq_printf(s, "%u", *(uint8_t *)num);
+				trace_seq_printf(s, "0x%x", *(uint8_t *)num);
 			} else if (el_size == 2) {
-				trace_seq_printf(s, "%u", *(uint16_t *)num);
+				trace_seq_printf(s, "0x%x", *(uint16_t *)num);
 			} else if (el_size == 4) {
-				trace_seq_printf(s, "%u", *(uint32_t *)num);
+				trace_seq_printf(s, "0x%x", *(uint32_t *)num);
 			} else if (el_size == 8) {
-				trace_seq_printf(s, "%"PRIu64, *(uint64_t *)num);
+				trace_seq_printf(s, "0x%"PRIx64, *(uint64_t *)num);
 			} else {
 				trace_seq_printf(s, "BAD SIZE:%d 0x%x",
 						 el_size, *(uint8_t *)num);
@@ -4958,6 +4959,7 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 
 			num += el_size;
 		}
+		trace_seq_putc(s, '}');
 		break;
 	}
 	case TEP_PRINT_TYPE:
