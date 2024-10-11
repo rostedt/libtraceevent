@@ -3571,6 +3571,23 @@ process_sizeof(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 			/* The token is the next token */
 			token_has_paren = true;
 		}
+
+	} else if (strcmp(token, "__u64") == 0 || strcmp(token, "u64") == 0 ||
+		   strcmp(token, "__s64") == 0 || strcmp(token, "s64") == 0) {
+		arg->atom.atom = strdup("8");
+
+	} else if (strcmp(token, "__u32") == 0 || strcmp(token, "u32") == 0 ||
+		   strcmp(token, "__s32") == 0 || strcmp(token, "s32") == 0) {
+		arg->atom.atom = strdup("4");
+
+	} else if (strcmp(token, "__u16") == 0 || strcmp(token, "u16") == 0 ||
+		   strcmp(token, "__s16") == 0 || strcmp(token, "s16") == 0) {
+		arg->atom.atom = strdup("2");
+
+	} else if (strcmp(token, "__u8") == 0 || strcmp(token, "u8") == 0 ||
+		   strcmp(token, "__8") == 0 || strcmp(token, "s8") == 0) {
+		arg->atom.atom = strdup("1");
+
 	} else if (strcmp(token, "REC") == 0) {
 
 		free_token(token);
