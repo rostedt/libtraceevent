@@ -1307,7 +1307,7 @@ static enum tep_event_type __read_token(struct tep_handle *tep, char **tok)
 			/* Break out if the file is corrupted and giving non print chars */
 			if (ch <= 0)
 				break;
-		} while ((ch != quote_ch && isprint(ch)) || last_ch == '\\' || ch == '\n');
+		} while ((ch != quote_ch && isprint(ch)) || last_ch == '\\' || ch == '\n' || ch == '\t');
 		/* remove the last quote */
 		i--;
 
