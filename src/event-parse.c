@@ -6809,11 +6809,9 @@ static void data_latency_format(struct tep_handle *tep, struct trace_seq *s,
 	softirq = lat_flags & TRACE_FLAG_SOFTIRQ;
 
 	trace_seq_printf(&sq, "%c%c%c",
-	       (lat_flags & TRACE_FLAG_IRQS_OFF) ? 'd' :
-	       (lat_flags & TRACE_FLAG_IRQS_NOSUPPORT) ?
-	       'X' : '.',
+	       (lat_flags & TRACE_FLAG_IRQS_OFF) ? 'd' : '.',
 	       (lat_flags & TRACE_FLAG_NEED_RESCHED) ?
-	       'N' : '.',
+	       'N' : (lat_flags &  TRACE_FLAG_NEED_RESCHED_LAZY) ? 'L' :'.',
 	       (hardirq && softirq) ? 'H' :
 	       hardirq ? 'h' : softirq ? 's' : '.');
 
