@@ -133,6 +133,39 @@ static void show_function(struct trace_seq *s, struct tep_handle *tep,
 	}
 }
 
+/* Returns true if it printed args, otherwise it returns false */
+static bool print_args(struct trace_seq *s, struct tep_event *event,
+		       struct tep_record *record)
+{
+	struct tep_format_field *field;
+	unsigned long arg;
+	void *args;
+	int len;
+
+	field = tep_find_field(event, "args");
+	if (!field)
+		return false;
+
+	len = record->size - field->offset;
+
+	/* todo make this tep long size */
+	if (len < 3 * sizeof(long))
+		return false;
+
+	args = record->data + field->offset;
+
+	trace_seq_putc(s, '(');
+
+	for (int i = 0; i < len; i += sizeof(long), args += sizeof(long)) {
+		memcpy(&arg, args, sizeof(long));
+		trace_seq_printf(s, "%lx", arg);
+		if (i + sizeof(long) < len)
+			trace_seq_puts(s, ", ");
+	}
+	trace_seq_putc(s, ')');
+	return true;
+}
+
 static int function_handler(struct trace_seq *s, struct tep_record *record,
 			    struct tep_event *event, void *context)
 {
@@ -162,6 +195,8 @@ static int function_handler(struct trace_seq *s, struct tep_record *record,
 		show_function(s, tep, func, function);
 	else
 		trace_seq_printf(s, "0x%llx", function);
+
+	print_args(s, event, record);
 
 	if (ftrace_parent->set) {
 		trace_seq_printf(s, " <-- ");
