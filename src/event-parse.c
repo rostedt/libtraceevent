@@ -2083,6 +2083,16 @@ process_cond(struct tep_event *event, struct tep_print_arg *top, char **tok)
 
 	type = process_arg(event, right, &token);
 
+ againagain:
+	if (type == TEP_EVENT_ERROR)
+		goto out_free;
+
+	/* Handle other operations in the results */
+	if (type == TEP_EVENT_OP) {
+		type = process_op(event, right, &token);
+		goto againagain;
+	}
+
 	top->op.right = arg;
 
 	*tok = token;
