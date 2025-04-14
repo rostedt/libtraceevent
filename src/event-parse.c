@@ -3161,6 +3161,54 @@ out:
 }
 
 static enum tep_event_type
+process_int_dynamic_array(struct tep_event *event, struct tep_print_arg *arg, char **tok)
+{
+	struct tep_format_field *field;
+	enum tep_event_type type;
+	char *token;
+
+	memset(arg, 0, sizeof(*arg));
+	arg->type = TEP_PRINT_INT_ARRAY;
+
+	/*
+	 * The first item within the parenthesis is another field that holds
+	 * the index into where the array starts.
+	 */
+	type = tep_read_token(event->tep, &token);
+	if (type != TEP_EVENT_ITEM)
+		return TEP_EVENT_ERROR;
+
+	/* Find the field */
+	field = tep_find_field(event, token);
+	if (!field)
+		goto out;
+
+	if (read_expected(event->tep, TEP_EVENT_DELIM, ",") < 0)
+		goto out;
+
+	arg->int_array.count = NULL;
+
+	if (alloc_and_process_delim(event, ")", &arg->int_array.el_size))
+		goto out;
+
+	arg->int_array.field = alloc_arg();
+	if (!arg) {
+		do_warning_event(event, "%s: not enough memory!", __func__);
+		goto out;
+	}
+
+	arg->int_array.field->type = TEP_PRINT_DYNAMIC_ARRAY;
+	arg->int_array.field->dynarray.field = field;
+	arg->int_array.field->dynarray.index = 0;
+
+	return read_token_item(event->tep, tok);
+out:
+	tep_free_token(token);
+	*tok = NULL;
+	return TEP_EVENT_ERROR;
+}
+
+static enum tep_event_type
 process_dynamic_array(struct tep_event *event, struct tep_print_arg *arg, char **tok)
 {
 	struct tep_format_field *field;
@@ -3660,6 +3708,10 @@ process_function(struct tep_event *event, struct tep_print_arg *arg,
 	if (strcmp(token, "__print_array") == 0) {
 		tep_free_token(token);
 		return process_int_array(event, arg, tok);
+	}
+	if (strcmp(token, "__print_dynamic_array") == 0) {
+		tep_free_token(token);
+		return process_int_dynamic_array(event, arg, tok);
 	}
 	if (strcmp(token, "__get_str") == 0 ||
 	    strcmp(token, "__get_rel_str") == 0) {
@@ -4941,9 +4993,11 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 		void *num;
 		int el_size;
 
+		len = 0;
+
 		if (arg->int_array.field->type == TEP_PRINT_DYNAMIC_ARRAY) {
 			dynamic_offset_field(tep, arg->int_array.field->dynarray.field, data,
-					     size, &offset, NULL);
+					     size, &offset, &len);
 			num = data + offset;
 		} else {
 			field = arg->int_array.field->field.field;
@@ -4956,9 +5010,16 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 			}
 			num = data + field->offset;
 		}
-		len = eval_num_arg(data, size, event, arg->int_array.count);
 		el_size = eval_num_arg(data, size, event,
 				       arg->int_array.el_size);
+
+		if (arg->int_array.count) {
+			len = eval_num_arg(data, size, event, arg->int_array.count);
+		} else {
+			/* __print_dynamic_array() has a dynamic count */
+			if (el_size)
+				len /= el_size;
+		}
 		trace_seq_putc(s, '{');
 		for (i = 0; i < len; i++) {
 			if (i)
