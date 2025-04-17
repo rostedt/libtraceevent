@@ -91,6 +91,7 @@ PLUGINS += plugin_hrtimer.so
 PLUGINS += plugin_kmem.so
 PLUGINS += plugin_kvm.so
 PLUGINS += plugin_mac80211.so
+PLUGINS += plugin_net.so
 PLUGINS += plugin_sched_switch.so
 PLUGINS += plugin_function.so
 PLUGINS += plugin_futex.so
