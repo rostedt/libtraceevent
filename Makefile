@@ -317,8 +317,8 @@ define install_ld_config
 	if $(LDCONFIG); then \
 		if ! grep -q "^$(libdir)$$" $(LD_SO_CONF_PATH)/* ; then \
 			$(CC) -o $(objtree)/test $(srctree)/test.c -I $(includedir_SQ) \
-				-L $(libdir_SQ) -ltraceevent &> /dev/null; \
-			if ! $(objtree)/test &> /dev/null; then \
+				-L $(libdir_SQ) -ltraceevent > /dev/null 2>&1; \
+			if ! $(objtree)/test > /dev/null 2>&1; then \
 				$(call print_install, trace.conf, $(LD_SO_CONF_PATH)) \
 				echo $(libdir_SQ) >> $(LD_SO_CONF_PATH)/trace.conf; \
 				$(LDCONFIG); \
