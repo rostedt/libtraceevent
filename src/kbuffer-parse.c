@@ -958,6 +958,7 @@ int kbuffer_read_buffer(struct kbuffer *kbuf, void *buffer, int len)
 	unsigned long long ts;
 	unsigned int type_len_ts;
 	bool do_swap = false;
+	int buf_len = len;
 	int last_next;
 	int save_curr;
 
@@ -1008,6 +1009,33 @@ int kbuffer_read_buffer(struct kbuffer *kbuf, void *buffer, int len)
 		type_len_ts &= ((1 << 5) - 1);
 
 	write_4(do_swap, buffer + kbuf->start, type_len_ts);
+
+	/*
+	 * If reading the first event and there are lost events, add it
+	 * to the buffer.
+	 */
+	if (!save_curr && kbuf->lost_events) {
+		unsigned long long cnt_8;
+		unsigned int cnt_4;
+		int word_size;
+
+		if (kbuf->flags & KBUFFER_FL_LONG_8)
+			word_size = sizeof(cnt_8);
+		else
+			word_size = sizeof(cnt_4);
+
+		if (len + kbuf->start <= word_size + buf_len) {
+			if (word_size == sizeof(cnt_8)) {
+				cnt_8 = kbuf->lost_events;
+				write_8(do_swap, buffer + len + kbuf->start, cnt_8);
+			} else {
+				cnt_4 = kbuf->lost_events;
+				write_4(do_swap, buffer + len + kbuf->start, cnt_4);
+			}
+			len |= MISSING_STORED;
+		}
+		len |= MISSING_EVENTS;
+	}
 
 	/* Update the size */
 	if (kbuf->read_long == __read_long_8)
