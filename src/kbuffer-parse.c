@@ -247,7 +247,7 @@ kbuffer_alloc(enum kbuffer_long_size size, enum kbuffer_endian endian)
 
 	if (host_is_bigendian()) {
 		if (endian == KBUFFER_ENDIAN_SAME_AS_HOST)
-			flags |= KBUFFER_FL_BIG_ENDIAN;
+			kbuf->flags |= KBUFFER_FL_BIG_ENDIAN;
 		kbuf->flags |= KBUFFER_FL_HOST_BIG_ENDIAN;
 	}
 
