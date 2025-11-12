@@ -166,6 +166,11 @@ KVM plugin calllbacks: (Defined by the application and complied with -rdynamic)
 				    unsigned long long pass:[*]paddr);
 	void *tep_plugin_kvm_put_func*(const char pass:[*]func);
 
+BTF parsing:
+	int *tep_load_btf*(struct tep_handle pass:[*]_tep_, void pass:[*]_raw_data_, size_t _data_size_);
+	int *tep_btf_print_args*(struct tep_handle pass:[*]_tep_, struct trace_seq pass:[*]_s_, void pass:[*]_args_,
+		       int nmem, int size, const char pass:[*]_func_);
+
 Trace sequences:
 *#include <trace-seq.h>*
 	void *trace_seq_init*(struct trace_seq pass:[*]_s_);
