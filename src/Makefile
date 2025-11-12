@@ -11,6 +11,7 @@ OBJS += parse-filter.o
 OBJS += parse-utils.o
 OBJS += tep_strerror.o
 OBJS += trace-seq.o
+OBJS += trace-btf.o
 
 OBJS := $(OBJS:%.o=$(bdir)/%.o)
 DEPS := $(OBJS:$(bdir)/%.o=$(bdir)/.%.d)

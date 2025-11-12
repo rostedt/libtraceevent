@@ -8726,6 +8726,8 @@ void tep_free(struct tep_handle *tep)
 	free(tep->func_resolver);
 	free_tep_plugin_paths(tep);
 
+	btf_free(tep->btf);
+
 	free(tep);
 }
 

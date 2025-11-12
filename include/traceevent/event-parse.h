@@ -580,6 +580,11 @@ int tep_get_ref(struct tep_handle *tep);
 
 struct kbuffer *tep_kbuffer(struct tep_handle *tep);
 
+/* BTF */
+int tep_load_btf(struct tep_handle *tep, void *raw_data, size_t data_size);
+int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
+		       int nmem, int size, const char *func);
+
 /* for debugging */
 void tep_print_funcs(struct tep_handle *tep);
 void tep_print_printk(struct tep_handle *tep);

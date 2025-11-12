@@ -135,10 +135,9 @@ static void show_function(struct trace_seq *s, struct tep_handle *tep,
 
 /* Returns true if it printed args, otherwise it returns false */
 static bool print_args(struct trace_seq *s, struct tep_event *event,
-		       struct tep_record *record)
+		       struct tep_record *record, const char *func)
 {
 	struct tep_format_field *field;
-	unsigned long arg;
 	void *args;
 	int len;
 
@@ -156,12 +155,8 @@ static bool print_args(struct trace_seq *s, struct tep_event *event,
 
 	trace_seq_putc(s, '(');
 
-	for (int i = 0; i < len; i += sizeof(long), args += sizeof(long)) {
-		memcpy(&arg, args, sizeof(long));
-		trace_seq_printf(s, "%lx", arg);
-		if (i + sizeof(long) < len)
-			trace_seq_puts(s, ", ");
-	}
+	tep_btf_print_args(event->tep, s, args, len / sizeof(long), sizeof(long), func);
+
 	trace_seq_putc(s, ')');
 	return true;
 }
@@ -196,7 +191,7 @@ static int function_handler(struct trace_seq *s, struct tep_record *record,
 	else
 		trace_seq_printf(s, "0x%llx", function);
 
-	print_args(s, event, record);
+	print_args(s, event, record, func);
 
 	if (ftrace_parent->set) {
 		trace_seq_printf(s, " <-- ");
@@ -281,7 +276,7 @@ trace_stack_handler(struct trace_seq *s, struct tep_record *record,
 
 static int
 trace_raw_data_handler(struct trace_seq *s, struct tep_record *record,
-		    struct tep_event *event, void *context)
+		       struct tep_event *event, void *context)
 {
 	struct tep_format_field *field;
 	unsigned long long id;

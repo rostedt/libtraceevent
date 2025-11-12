@@ -14,6 +14,7 @@ struct func_list;
 struct event_handler;
 struct func_resolver;
 struct tep_plugins_dir;
+struct tep_btf;
 
 #define __hidden __attribute__((visibility ("hidden")))
 
@@ -89,6 +90,8 @@ struct tep_handle {
 	const char *input_buf;
 	unsigned long long input_buf_ptr;
 	unsigned long long input_buf_siz;
+
+	struct tep_btf *btf;
 };
 
 enum tep_print_parse_type {
@@ -123,5 +126,8 @@ unsigned long long get_input_buf_ptr(struct tep_handle *tep);
 const char *get_input_buf(struct tep_handle *tep);
 enum tep_event_type read_token(struct tep_handle *tep, char **tok);
 void free_token(char *tok);
+
+/* BTF routines */
+void btf_free(struct tep_btf *btf);
 
 #endif /* _PARSE_EVENTS_INT_H */

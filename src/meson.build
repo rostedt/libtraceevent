@@ -11,6 +11,7 @@ sources= [
    'parse-utils.c',
    'tep_strerror.c',
    'trace-seq.c',
+   'trace-btf.c',
 ]
 
 cc = meson.get_compiler('c')
