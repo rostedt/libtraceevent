@@ -18,13 +18,8 @@ DEPS := $(OBJS:$(bdir)/%.o=$(bdir)/.%.d)
 $(bdir)/%.o: %.c
 	$(Q)$(call do_fpic_compile)
 
-# Make all global functions that do not start with "tep_" have a unique name.
-redefine_local = \
-	$(shell for f in a `nm ${LIBTRACEEVENT_SHARED} | grep ' t ' | cut -d' ' -f3 | sort -u`;  do \
-	 if [ "$${f#tep_}" = "$$f" ]; then echo --redefine-sym $$f=_tep_local_$$f; fi; done)
-
 $(LIBTRACEEVENT_STATIC): $(bdir)/.tmp.libtraceevent.a $(LIBTRACEEVENT_SHARED)
-	$(Q)objcopy $(call redefine_local) $< $@
+	$(Q)objcopy $(call redefine_local,${LIBTRACEEVENT_SHARED}) $< $@
 
 $(bdir)/.tmp.libtraceevent.a: $(OBJS)
 	$(Q)$(call do_build_static_lib)

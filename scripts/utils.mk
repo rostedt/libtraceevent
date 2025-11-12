@@ -180,3 +180,8 @@ define do_install_pkgconfig_file
 		(echo Failed to locate pkg-config directory) 1>&2;		\
 	fi
 endef
+
+# Make all global functions that do not start with "tep_" have a unique name.
+redefine_local = \
+	$(shell for f in a `nm $(1) 2>/dev/null | grep ' t ' | cut -d' ' -f3 | sort -u`;  do \
+	 if [ "$${f#tep_}" = "$$f" ]; then echo --redefine-sym $$f=_tep_local_$$f; fi; done)

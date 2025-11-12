@@ -16,17 +16,28 @@ endef
 $(call allow-override,MESON,meson)
 $(call allow-override,MESON_BUILD_DIR,build)
 
+include $(src)/scripts/utils.mk
 
-all: compile
+LIBTRACEEVENT_SHARED_MESON = $(srctree)/build/src/libtraceevent.so
+LIBTRACEEVENT_STATIC_MESON = $(srctree)/build/src/libtraceevent.a
+TEMP_MESON = $(srctree)/build/src/.tmp.libtraceevent.a
+
+all: $(LIBTRACEEVENT_STATIC_MESON) $(LIBTRACEEVENT_SHARED_MESON)
 
 PHONY += compile
 compile: $(MESON_BUILD_DIR) force
 	$(MESON) compile -C $(MESON_BUILD_DIR)
 
+$(LIBTRACEEVENT_SHARED_MESON): compile
+
+$(LIBTRACEEVENT_STATIC_MESON): $(LIBTRACEEVENT_SHARED_MESON)
+	$(Q)objcopy $(call redefine_local,$(LIBTRACEEVENT_SHARED_MESON)) $(LIBTRACEEVENT_STATIC_MESON) $(TEMP_MESON)
+	mv $(TEMP_MESON) $(LIBTRACEEVENT_STATIC_MESON)
+
 $(MESON_BUILD_DIR):
 	$(MESON) setup --prefix=$(prefix) $(MESON_BUILD_DIR)
 
-install: compile
+install: $(LIBTRACEEVENT_STATIC_MESON)
 	$(MESON) install -C $(MESON_BUILD_DIR)
 
 docs: $(MESON_BUILD_DIR)
