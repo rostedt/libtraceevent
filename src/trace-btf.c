@@ -357,10 +357,22 @@ int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
 	unsigned long long arg;
 	unsigned int encode;
 	const char *param_name;
+	const char *fp;
 	int a, p, x, nr;
 
 	if (size != 4 && size != 8)
 		return -1;
+
+	if (!type && (fp = strchr(func, '.'))) {
+		char *f;
+		/* func name has extra characters */
+		f = strdup(func);
+		if (f) {
+			f[fp - func] = '\0';
+			type = tep_btf_find_func(btf, f);
+			free(f);
+		}
+	}
 
 	if (!type) {
 		for (int i = 0; i < nmem; i++) {
