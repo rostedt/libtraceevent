@@ -15,6 +15,8 @@
 #include <dirent.h>
 #include <ftw.h>
 
+#include <sys/mman.h>
+
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>
 
@@ -378,6 +380,41 @@ static void test_parse_sizeof_undef(void)
 	test_parse_sizeof(0, 5, "sizeof_undef", SIZEOF_LONG0_FMT);
 }
 
+static void test_btf_read(void)
+{
+	unsigned long args[] = {0x7ffe7d33f3d0, 0, 0, 0, 0, 0};
+	const char *func = "getname_flags";
+	struct trace_seq *s = test_seq;
+	struct stat st;
+	void *buf;
+	int fd, nr = 6;
+
+	fd = open("/sys/kernel/btf/vmlinux", O_RDONLY);
+	if (fd < 0) {
+		printf("[KERNEL DOES NOT HAVE BTF] ...");
+		return;
+	}
+	CU_TEST(fstat(fd, &st) == 0);
+
+	buf = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	CU_TEST(buf != MAP_FAILED);
+
+	CU_TEST(tep_load_btf(test_tep, buf, st.st_size) == 0);
+
+	munmap(buf, st.st_size);
+	close(fd);
+
+	trace_seq_init(s);
+	trace_seq_printf(s, "%s(", func);
+
+	CU_TEST(tep_btf_print_args(test_tep, s, args, nr, sizeof(long), func) == 0);
+
+	trace_seq_puts(s, ")\n");
+	trace_seq_terminate(s);
+
+	CU_TEST(strcmp(s->buffer, "getname_flags(filename=0x7ffe7d33f3d0, flags=0)\n") == 0);
+}
+
 static int test_suite_destroy(void)
 {
 	tep_free(test_tep);
@@ -429,4 +466,6 @@ void test_traceevent_lib(void)
 		    test_parse_sizeof4);
 	CU_add_test(suite, "parse sizeof() no long size defined",
 		    test_parse_sizeof_undef);
+	CU_add_test(suite, "read BTF",
+		    test_btf_read);
 }
