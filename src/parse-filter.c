@@ -38,8 +38,8 @@ static void show_error(struct tep_handle *tep, char *error_buf, const char *fmt,
 	int len;
 	int i;
 
-	input = tep_get_input_buf(tep);
-	index = tep_get_input_buf_ptr(tep);
+	input = get_input_buf(tep);
+	index = get_input_buf_ptr(tep);
 	len = input ? strlen(input) : 0;
 
 	if (len) {
@@ -63,25 +63,25 @@ static enum tep_event_type filter_read_token(struct tep_handle *tep, char **tok)
 	char *token = NULL;
 
 	do {
-		tep_free_token(token);
-		type = tep_read_token(tep, &token);
+		free_token(token);
+		type = read_token(tep, &token);
 	} while (type == TEP_EVENT_NEWLINE || type == TEP_EVENT_SPACE);
 
 	/* If token is = or ! check to see if the next char is ~ */
 	if (token &&
 	    (strcmp(token, "=") == 0 || strcmp(token, "!") == 0) &&
-	    tep_peek_char(tep) == '~') {
+	    peek_char(tep) == '~') {
 		/* append it */
 		*tok = malloc(3);
 		if (*tok == NULL) {
-			tep_free_token(token);
+			free_token(token);
 			return TEP_EVENT_ERROR;
 		}
 		sprintf(*tok, "%c%c", *token, '~');
-		tep_free_token(token);
+		free_token(token);
 		/* Now remove the '~' from the buffer */
-		tep_read_token(tep, &token);
-		tep_free_token(token);
+		read_token(tep, &token);
+		free_token(token);
 	} else
 		*tok = token;
 
@@ -1182,7 +1182,7 @@ process_event(struct tep_event *event, const char *filter_str,
 {
 	int ret;
 
-	tep_init_input_buf(event->tep, filter_str, strlen(filter_str));
+	init_input_buf(event->tep, filter_str, strlen(filter_str));
 
 	ret = process_filter(event, parg, error_str, 0);
 	if (ret < 0)
@@ -1240,7 +1240,7 @@ filter_event(struct tep_event_filter *filter, struct tep_event *event,
 static void filter_init_error_buf(struct tep_event_filter *filter)
 {
 	/* clear buffer to reset show error */
-	tep_init_input_buf(filter->tep, "", 0);
+	init_input_buf(filter->tep, "", 0);
 	filter->error_buffer[0] = '\0';
 }
 

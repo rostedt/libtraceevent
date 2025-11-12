@@ -108,20 +108,20 @@ struct tep_print_parse {
 	struct tep_print_arg		*len_as_arg;
 };
 
-void tep_free_event(struct tep_event *event);
-void tep_free_format_field(struct tep_format_field *field);
-void tep_free_plugin_paths(struct tep_handle *tep);
+void free_tep_event(struct tep_event *event);
+void free_tep_format_field(struct tep_format_field *field);
+void free_tep_plugin_paths(struct tep_handle *tep);
 
-unsigned short tep_data2host2(struct tep_handle *tep, unsigned short data);
-unsigned int tep_data2host4(struct tep_handle *tep, unsigned int data);
-unsigned long long tep_data2host8(struct tep_handle *tep, unsigned long long data);
+unsigned short data2host2(struct tep_handle *tep, unsigned short data);
+unsigned int data2host4(struct tep_handle *tep, unsigned int data);
+unsigned long long data2host8(struct tep_handle *tep, unsigned long long data);
 
 /* access to the internal parser */
-int tep_peek_char(struct tep_handle *tep);
-void tep_init_input_buf(struct tep_handle *tep, const char *buf, unsigned long long size);
-unsigned long long tep_get_input_buf_ptr(struct tep_handle *tep);
-const char *tep_get_input_buf(struct tep_handle *tep);
-enum tep_event_type tep_read_token(struct tep_handle *tep, char **tok);
-void tep_free_token(char *tok);
+int peek_char(struct tep_handle *tep);
+void init_input_buf(struct tep_handle *tep, const char *buf, unsigned long long size);
+unsigned long long get_input_buf_ptr(struct tep_handle *tep);
+const char *get_input_buf(struct tep_handle *tep);
+enum tep_event_type read_token(struct tep_handle *tep, char **tok);
+void free_token(char *tok);
 
 #endif /* _PARSE_EVENTS_INT_H */
