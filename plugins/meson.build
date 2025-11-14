@@ -11,6 +11,7 @@ plugins = [
     'plugin_kmem.c',
     'plugin_kvm.c',
     'plugin_mac80211.c',
+    'plugin_net.c',
     'plugin_sched_switch.c',
     'plugin_scsi.c',
     'plugin_tlb.c',
