@@ -413,6 +413,8 @@ int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
 
 	for (a = 0, p = 0; p < nr; a++, p++) {
 		struct btf_type *t;
+		int offset;
+		int bits;
 
 		if (p)
 			trace_seq_puts(s, ", ");
@@ -440,6 +442,11 @@ int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
 			break;
 		case BTF_KIND_INT:
 			encode = *(int *)((void *)t + sizeof(*t));
+			bits = BTF_INT_BITS(encode);
+			offset = BTF_INT_OFFSET(encode);
+			arg >>= offset;
+			if (bits < 64)
+				arg &= (1ULL << bits) - 1;
 			/* Print unsigned ints as hex */
 			if (BTF_INT_ENCODING(encode) & BTF_INT_SIGNED)
 				trace_seq_printf(s, "%lld", arg);
