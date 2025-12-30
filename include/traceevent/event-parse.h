@@ -138,6 +138,11 @@ struct tep_print_arg_bitmask {
 	struct tep_format_field	*field;
 };
 
+struct tep_print_arg_stacktrace {
+	char			*stacktrace;
+	struct tep_format_field	*field;
+};
+
 struct tep_print_arg_field {
 	char			*name;
 	struct tep_format_field	*field;
@@ -215,6 +220,7 @@ enum tep_print_arg_type {
 	TEP_PRINT_DYNAMIC_ARRAY_LEN,
 	TEP_PRINT_HEX_STR,
 	TEP_PRINT_CPUMASK,
+	TEP_PRINT_STACKTRACE,
 };
 
 struct tep_print_arg {
@@ -231,6 +237,7 @@ struct tep_print_arg {
 		struct tep_print_arg_func	func;
 		struct tep_print_arg_string	string;
 		struct tep_print_arg_bitmask	bitmask;
+		struct tep_print_arg_stacktrace	stacktrace;
 		struct tep_print_arg_op		op;
 		struct tep_print_arg_dynarray	dynarray;
 	};

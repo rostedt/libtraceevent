@@ -1129,6 +1129,9 @@ static void free_arg(struct tep_print_arg *arg)
 		free_arg(arg->op.left);
 		free_arg(arg->op.right);
 		break;
+	case TEP_PRINT_STACKTRACE:
+		free(arg->stacktrace.stacktrace);
+		break;
 	case TEP_PRINT_FUNC:
 		while (arg->func.args) {
 			farg = arg->func.args;
@@ -2895,6 +2898,7 @@ static int arg_num_eval(struct tep_print_arg *arg, long long *val)
 	case TEP_PRINT_BSTRING:
 	case TEP_PRINT_BITMASK:
 	case TEP_PRINT_CPUMASK:
+	case TEP_PRINT_STACKTRACE:
 	default:
 		do_warning("invalid eval type %d", arg->type);
 		ret = 0;
@@ -2925,6 +2929,7 @@ static char *arg_eval (struct tep_print_arg *arg)
 	case TEP_PRINT_BSTRING:
 	case TEP_PRINT_BITMASK:
 	case TEP_PRINT_CPUMASK:
+	case TEP_PRINT_STACKTRACE:
 	default:
 		do_warning("invalid eval type %d", arg->type);
 		break;
@@ -3462,6 +3467,34 @@ process_cpumask(struct tep_event *event __maybe_unused, struct tep_print_arg *ar
 	return type;
 }
 
+static enum tep_event_type
+process_stacktrace(struct tep_event *event, struct tep_print_arg *arg, char **tok)
+{
+	enum tep_event_type type;
+	char *token;
+
+	if (read_expect_type(event->tep, TEP_EVENT_ITEM, &token) < 0)
+		goto out_free;
+
+	arg->type = TEP_PRINT_STACKTRACE;
+	arg->stacktrace.stacktrace = token;
+	arg->stacktrace.field = NULL;
+
+	if (read_expected(event->tep, TEP_EVENT_DELIM, ")") < 0)
+		goto out_err;
+
+	type = read_token(event->tep, &token);
+	*tok = token;
+
+	return type;
+
+ out_free:
+	free_token(token);
+ out_err:
+	*tok = NULL;
+	return TEP_EVENT_ERROR;
+}
+
 static struct tep_function_handler *
 find_func_handler(struct tep_handle *tep, char *func_name)
 {
@@ -3749,6 +3782,10 @@ process_function(struct tep_event *event, struct tep_print_arg *arg,
 	    strcmp(token, "__get_rel_dynamic_array_len") == 0) {
 		free_token(token);
 		return process_dynamic_array_len(event, arg, tok);
+	}
+	if (strcmp(token, "__get_stacktrace") == 0) {
+		free_token(token);
+		return process_stacktrace(event, arg, tok);
 	}
 	if (strcmp(token, "__builtin_expect") == 0) {
 		free_token(token);
@@ -4414,6 +4451,7 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 	case TEP_PRINT_BSTRING:
 	case TEP_PRINT_BITMASK:
 	case TEP_PRINT_CPUMASK:
+	case TEP_PRINT_STACKTRACE:
 		return 0;
 	case TEP_PRINT_FUNC: {
 		struct trace_seq s;
@@ -4859,6 +4897,33 @@ more:
 	free(str);
 }
 
+static void print_stacktrace_to_seq(struct tep_handle *tep,
+				    struct trace_seq *s, const char *format,
+				    int len_arg, const void *data, int size)
+{
+	int nr_funcs = size / tep->long_size;
+	struct func_map *func;
+	unsigned long long val;
+
+	trace_seq_putc(s, '\n');
+
+	/* The first entry is a counter, skip it */
+	data += tep->long_size;
+
+	for (int i = 1; i < nr_funcs; i++) {
+		trace_seq_puts(s, "=> ");
+		val = tep_read_number(tep, data, tep->long_size);
+		func = find_func(tep, val);
+		if (func) {
+			trace_seq_puts(s, func->func);
+			trace_seq_printf(s, "+0x%llx\n", val - func->addr);
+		} else {
+			trace_seq_printf(s, "%llx\n", val);
+		}
+		data += tep->long_size;
+	}
+}
+
 static void print_str_arg(struct trace_seq *s, void *data, int size,
 			  struct tep_event *event, const char *format,
 			  int len_arg, struct tep_print_arg *arg)
@@ -5095,6 +5160,17 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 		dynamic_offset_field(tep, arg->bitmask.field, data, size, &offset, &len);
 		print_cpumask_to_seq(tep, s, format, len_arg,
 				     data + offset, len);
+		break;
+	}
+	case TEP_PRINT_STACKTRACE: {
+		if (!arg->stacktrace.field) {
+			arg->stacktrace.field = tep_find_any_field(event, arg->stacktrace.stacktrace);
+			if (!arg->stacktrace.field)
+				break;
+		}
+		dynamic_offset_field(tep, arg->stacktrace.field, data, size, &offset, &len);
+		print_stacktrace_to_seq(tep, s, format, len_arg,
+					data + offset, len);
 		break;
 	}
 	case TEP_PRINT_OP:
