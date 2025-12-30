@@ -20,7 +20,7 @@ $(bdir)/%.o: %.c
 	$(Q)$(call do_fpic_compile)
 
 $(LIBTRACEEVENT_STATIC): $(bdir)/.tmp.libtraceevent.a $(LIBTRACEEVENT_SHARED)
-	$(Q)objcopy $(call redefine_local,${LIBTRACEEVENT_SHARED}) $< $@
+	$(Q)objcopy $(call redefine_local,${LIBTRACEEVENT_SHARED},$<) $< $@
 
 $(bdir)/.tmp.libtraceevent.a: $(OBJS)
 	$(Q)$(call do_build_static_lib)
@@ -49,7 +49,7 @@ $(DEPS): | $(bdir)
 
 clean:
 	$(Q)$(call do_clean,$(OBJS) $(DEPS) $(bdir)/libtraceevent.o \
-	                    $(bdir)/.tmp.libtraceevent.a)
+	                    $(bdir)/.tmp.libtraceevent.a $(bdir)/.tmp.func-list)
 
 dep_includes := $(wildcard $(DEPS))
 

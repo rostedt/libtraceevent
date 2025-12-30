@@ -183,5 +183,5 @@ endef
 
 # Make all global functions that do not start with "tep_" have a unique name.
 redefine_local = \
-	$(shell for f in a `nm $(1) 2>/dev/null | grep ' t ' | cut -d' ' -f3 | sort -u`;  do \
-	 if [ "$${f#tep_}" = "$$f" ]; then echo --redefine-sym $$f=_tep_local_$$f; fi; done)
+	$(shell nm $(2) 2>/dev/null | grep '[0-9a-f] t ' > .tmp.func-list; for f in a `nm $(1) 2>/dev/null | grep ' t ' | cut -d' ' -f3 | sort -u`;  do \
+	 if [ "$${f#tep_}" = "$$f" ]; then if grep -q $$f .tmp.func-list; then echo --redefine-sym $$f=_tep_local_$$f; fi; fi; done)
