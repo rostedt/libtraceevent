@@ -323,6 +323,89 @@ static struct btf_type *btf_skip_modifiers(struct tep_btf *btf, int id)
 	return t;
 }
 
+static void add_name(struct tep_btf *btf, struct btf_type *t,
+		     struct trace_seq *s, const char *alt)
+{
+	const char *name;
+
+	name = btf_name(btf, t->name_off);
+	if (name)
+		trace_seq_printf(s, "%s ", name);
+	else if (alt)
+		trace_seq_printf(s, "%s ", alt);
+	else
+		trace_seq_puts(s, "?? ");
+}
+
+static void btf_add_type(struct tep_btf *btf, struct trace_seq *s, int id)
+{
+	struct btf_type *t = btf_get_type(btf, id);
+	unsigned int encode;
+	int bits;
+
+	while (t) {
+		switch (BTF_INFO_KIND(t->info)) {
+		case BTF_KIND_TYPEDEF:
+			add_name(btf, t, s, "typedef");
+			return;
+
+		case BTF_KIND_ENUM:
+			trace_seq_puts(s, "enum ");
+			add_name(btf, t, s, NULL);
+			return;
+
+		case BTF_KIND_STRUCT:
+			trace_seq_puts(s, "struct ");
+			add_name(btf, t, s, NULL);
+			return;
+
+		case BTF_KIND_UNION:
+			trace_seq_puts(s, "union ");
+			add_name(btf, t, s, NULL);
+			return;
+
+		case BTF_KIND_PTR:
+			if (t->type)
+				btf_add_type(btf, s, t->type);
+			else
+				trace_seq_puts(s, "void ");
+			trace_seq_puts(s, "*");
+			return;
+
+		case BTF_KIND_VOLATILE:	trace_seq_puts(s, "volatile ");
+			btf_add_type(btf, s, t->type);
+			return;
+
+		case BTF_KIND_CONST:	trace_seq_puts(s, "const ");
+			btf_add_type(btf, s, t->type);
+			return;
+
+		case BTF_KIND_INT:
+			encode = *(int *)((void *)t + sizeof(*t));
+			if (!(BTF_INT_ENCODING(encode) & BTF_INT_SIGNED))
+				trace_seq_puts(s, "unsigned ");
+
+			bits = BTF_INT_BITS(encode);
+			switch (bits) {
+			case 8:		trace_seq_puts(s, "char "); break;
+			case 16:	trace_seq_puts(s, "short "); break;
+			case 32:	trace_seq_puts(s, "int "); break;
+			case 64:	trace_seq_puts(s, "long long "); break;
+			default:	trace_seq_printf(s, "int%d ", bits);
+			}
+			return;
+
+
+		case BTF_KIND_RESTRICT:
+		case BTF_KIND_TYPE_TAG:
+			id = t->type;
+			t = btf_get_type(btf, t->type);
+			continue;
+		}
+		break;
+	}
+}
+
 static void assign_arg(unsigned long long *arg, void *args, int size, int a)
 {
 	*arg = size == 4 ?
@@ -338,7 +421,7 @@ static int init_btf_func(struct tep_btf *btf, struct trace_seq *s,
 	unsigned long long arg;
 	const char *fp;
 
-	if (size != 4 && size != 8)
+	if (args && (size != 4 && size != 8))
 		return -1;
 
 	if (!type && (fp = strchr(func, '.'))) {
@@ -353,7 +436,7 @@ static int init_btf_func(struct tep_btf *btf, struct trace_seq *s,
 	}
 
 	if (!type) {
-		for (int i = 0; i < nmem; i++) {
+		for (int i = 0; args && i < nmem; i++) {
 			assign_arg(&arg, args, size, i);
 			trace_seq_printf(s, "%llx", arg);
 			if (i + 1 < nmem)
@@ -373,6 +456,70 @@ static int init_btf_func(struct tep_btf *btf, struct trace_seq *s,
 	*p_type = type;
 
 	return 0;
+}
+
+/**
+ * tep_btf_list_args - List the arguments (type and name) for a function
+ * @tep: The tep descriptor to use
+ * @s: The trace_seq to write the arguments into
+ * @func: The name of the function.
+ *
+ * Loads up @s with the type and name of @func's arguments (basically
+ * its prototype).
+ *
+ * Returns: number of arguments found, or -1 on failure.
+ */
+int tep_btf_list_args(struct tep_handle *tep, struct trace_seq *s, const char *func)
+{
+	struct tep_btf *btf = tep->btf;
+	struct btf_type *type = tep_btf_find_func(btf, func);
+	struct btf_param *param;
+	const char *param_name;
+	int p, nr;
+
+	if (init_btf_func(btf, s, NULL, 0, 0, func, &type) < 0)
+		return -1;
+
+	/* Type is NULL if function wasn't found */
+	if (!type)
+		return -1;
+
+	/* Get the function proto */
+	type = btf_get_type(btf, type->type);
+
+	/* No proto means "()" ? */
+	if (!type)
+		return 0;
+
+	if (BTF_INFO_KIND(type->info) != BTF_KIND_FUNC_PROTO) {
+		tep_warning("Invalid func proto type %d %s for function %s\n",
+			    BTF_INFO_KIND(type->info),
+			    btf_type_str(type), func);
+		return -1;
+	}
+
+	/* Get the number of parameters */
+	nr = BTF_INFO_VLEN(type->info);
+
+	/* The parameters are right after the FUNC_PROTO type */
+	param = ((void *)type) + sizeof(*type);
+
+	for (p = 0; p < nr; p++) {
+
+		if (p)
+			trace_seq_puts(s, ", ");
+
+		param_name = btf_name(btf, param[p].name_off);
+		if (!param_name)
+			param_name = "??";
+
+		btf_add_type(btf, s, param[p].type);
+
+
+		if (param_name)
+			trace_seq_printf(s, "%s", param_name);
+	}
+	return p;
 }
 
 /**
