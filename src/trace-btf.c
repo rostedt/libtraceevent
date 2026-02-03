@@ -330,6 +330,51 @@ static void assign_arg(unsigned long long *arg, void *args, int size, int a)
 		*(unsigned long long *)(args + a * sizeof(long long));
 }
 
+static int init_btf_func(struct tep_btf *btf, struct trace_seq *s,
+			 void *args, int nmem, int size,
+			 const char *func, struct btf_type **p_type)
+{
+	struct btf_type *type = tep_btf_find_func(btf, func);
+	unsigned long long arg;
+	const char *fp;
+
+	if (size != 4 && size != 8)
+		return -1;
+
+	if (!type && (fp = strchr(func, '.'))) {
+		char *f;
+		/* func name has extra characters */
+		f = strdup(func);
+		if (f) {
+			f[fp - func] = '\0';
+			type = tep_btf_find_func(btf, f);
+			free(f);
+		}
+	}
+
+	if (!type) {
+		for (int i = 0; i < nmem; i++) {
+			assign_arg(&arg, args, size, i);
+			trace_seq_printf(s, "%llx", arg);
+			if (i + 1 < nmem)
+				trace_seq_puts(s, ", ");
+		}
+		*p_type = NULL;
+		return 0;
+	}
+
+	if (BTF_INFO_KIND(type->info) != BTF_KIND_FUNC) {
+		tep_warning("Invalid func type %d %s for function %s\n",
+			    BTF_INFO_KIND(type->info),
+			    btf_type_str(type), func);
+		return -1;
+	}
+
+	*p_type = type;
+
+	return 0;
+}
+
 /**
  * tep_btf_print_args - Print function arguments from BTF info
  * @tep: The tep descriptor to use
@@ -357,39 +402,14 @@ int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
 	unsigned long long arg;
 	unsigned int encode;
 	const char *param_name;
-	const char *fp;
 	int a, p, x, nr;
 
-	if (size != 4 && size != 8)
+	if (init_btf_func(btf, s, args, nmem, size, func, &type) < 0)
 		return -1;
 
-	if (!type && (fp = strchr(func, '.'))) {
-		char *f;
-		/* func name has extra characters */
-		f = strdup(func);
-		if (f) {
-			f[fp - func] = '\0';
-			type = tep_btf_find_func(btf, f);
-			free(f);
-		}
-	}
-
-	if (!type) {
-		for (int i = 0; i < nmem; i++) {
-			assign_arg(&arg, args, size, i);
-			trace_seq_printf(s, "%llx", arg);
-			if (i + 1 < nmem)
-				trace_seq_puts(s, ", ");
-		}
+	/* Type is NULL if function wasn't found */
+	if (!type)
 		return 0;
-	}
-
-	if (BTF_INFO_KIND(type->info) != BTF_KIND_FUNC) {
-		tep_warning("Invalid func type %d %s for function %s\n",
-			    BTF_INFO_KIND(type->info),
-			    btf_type_str(type), func);
-		return -1;
-	}
 
 	/* Get the function proto */
 	type = btf_get_type(btf, type->type);
