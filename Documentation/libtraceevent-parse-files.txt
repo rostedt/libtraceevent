@@ -4,7 +4,7 @@ libtraceevent(3)
 NAME
 ----
 tep_parse_saved_cmdlines, tep_parse_printk_formats, tep_parse_kallsyms,
-tep_parse_last_boot_info - Parsing functions to load mappings
+tep_parse_last_boot_info, tep_load_modules - Parsing functions to load mappings
 
 SYNOPSIS
 --------
@@ -16,6 +16,7 @@ int *tep_parse_saved_cmdlines*(struct tep_handle pass:[*]_tep_, const char pass:
 int *tep_parse_printk_formats*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
 int *tep_parse_kallsyms*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
 int *tep_parse_last_boot_info*(struct tep_handle pass:[*]_tep_, const char pass:[*]_lbi_);
+int *tep_load_modules*(struct tep_handle pass:[*]_tep_, char pass:[*]_modules_, size_t _size_);
 --
 
 DESCRIPTION
@@ -50,6 +51,14 @@ the function offsets in the kallsyms (loaded by *tep_parse_kallsyms()*)
 into the _tep_ handler. The _lbi_ is a nul terminated string that contains
 the content of the last_boot_info file from the persistent ring buffer instance.
 
+*tep_load_modules()* loads the contents of the file /proc/modules into the _tep_
+handler. This will be used to match the modules found in the last_boot_info (loaded
+by *tep_parse_last_boot_info()*) to match the offsets of the binary data in
+in a persistent ring buffer that matches the address of a module from the previous
+boot to a module address found in _modules_. The _modules_ parameter does not need
+to be nul terminated, but _size_ is used to denote the size of the _modules_ string.
+This function is useless if *tep_parse_last_boot_info()* isnt used.
+
 RETURN VALUE
 ------------
 The *tep_parse_saved_cmdlines*() function returns 0 in case of success, or -1
@@ -62,6 +71,9 @@ The *tep_parse_kallsyms*() function returns 0 in case of success, or -1
 in case of an error.
 
 The *tep_parse_last_boot_info*() function retuns 0 in case of success, or -1
+in case of error.
+
+The *tep_load_modules*() function returns 0 in case of success, or -1
 in case of error.
 
 EXAMPLE
@@ -99,16 +111,16 @@ int load_print_strings(struct tep_handle *tep)
         return r;
 }
 
-int load_kallsyms(struct tep_handle *tep)
+static char *read_file(const char *file, size_t *size)
 {
-        char *line = NULL;
-        char *buf = NULL;
-        size_t sz = 0;
         FILE *fp;
-        int len = 0;
-        int r;
+	char *line = NULL;
+	char *buf = NULL;
+	size_t sz = 0;
+        size_t len = 0;
+	int r;
 
-        fp = fopen("/proc/kallsyms", "r");
+        fp = fopen(file, "r");
         while ((r = getline(&line, &sz, fp)) >= 0) {
                 buf = realloc(buf, len + r + 1);
                 memcpy(buf + len, line, r);
@@ -117,9 +129,44 @@ int load_kallsyms(struct tep_handle *tep)
         free(line);
         fclose(fp);
         if (!buf)
-                return -1;
+                return NULL;
         buf[len] = 0;
+	*size = len;
+	return buf;
+}
 
+int load_kallsyms(struct tep_handle *tep)
+{
+        char *buf;
+        size_t sz;
+        int r;
+
+	buf = read_file("/proc/kallsyms", &sz);
+	if (!buf)
+		return -1;
+        r = tep_parse_kallsyms(tep, buf);
+        free(buf);
+        return r;
+}
+
+int load_last_boot(struct tep_handle *tep, struct tracefs_instance *instance)
+{
+        char *buf;
+        size_t sz;
+        int r;
+
+	buf = tracefs_instance_file_read(instance, "last_boot_info", NULL);
+	if (!buf)
+		return 0;
+
+	r = tep_parse_last_boot_info(tep, buf);
+	free(buf);
+	if (r < 0)
+		return r;
+
+	buf = read_file("/proc/modules", &sz);
+	if (!buf)
+		return -1;
         r = tep_parse_kallsyms(tep, buf);
         free(buf);
         return r;

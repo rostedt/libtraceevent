@@ -429,6 +429,7 @@ int tep_override_comm(struct tep_handle *tep, const char *comm, int pid);
 int tep_parse_saved_cmdlines(struct tep_handle *tep, const char *buf);
 int tep_parse_kallsyms(struct tep_handle *tep, const char *kallsyms);
 int tep_parse_last_boot_info(struct tep_handle *tep, const char *lbi);
+int tep_load_modules(struct tep_handle *tep, char *modules, size_t size);
 int tep_register_function(struct tep_handle *tep, char *name,
 			  unsigned long long addr, char *mod);
 int tep_parse_printk_formats(struct tep_handle *tep, const char *buf);
