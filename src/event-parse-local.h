@@ -15,6 +15,7 @@ struct event_handler;
 struct func_resolver;
 struct tep_plugins_dir;
 struct tep_btf;
+struct tep_mod_addr;
 
 #define __hidden __attribute__((visibility ("hidden")))
 
@@ -46,6 +47,11 @@ struct tep_handle {
 	struct func_resolver *func_resolver;
 	struct func_list *funclist;
 	unsigned int func_count;
+	unsigned long long func_offset;
+	unsigned long long _text_addr;
+	struct tep_mod_addr *mod_addrs;
+	int nr_mod_addrs;
+
 
 	struct printk_map *printk_map;
 	struct printk_list *printklist;

@@ -551,6 +551,9 @@ int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
 	const char *param_name;
 	int a, p, x, nr;
 
+	if (!func)
+		return -1;
+
 	if (init_btf_func(btf, s, args, nmem, size, func, &type) < 0)
 		return -1;
 
@@ -596,6 +599,9 @@ int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
 		param_name = btf_name(btf, param[p].name_off);
 		if (param_name)
 			trace_seq_printf(s, "%s=", param_name);
+
+		if (!param[p].type)
+			continue;
 
 		t = btf_skip_modifiers(btf, param[p].type);
 

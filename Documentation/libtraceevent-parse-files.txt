@@ -3,8 +3,8 @@ libtraceevent(3)
 
 NAME
 ----
-tep_parse_saved_cmdlines, tep_parse_printk_formats, tep_parse_kallsyms
-- Parsing functions to load mappings
+tep_parse_saved_cmdlines, tep_parse_printk_formats, tep_parse_kallsyms,
+tep_parse_last_boot_info - Parsing functions to load mappings
 
 SYNOPSIS
 --------
@@ -15,6 +15,7 @@ SYNOPSIS
 int *tep_parse_saved_cmdlines*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
 int *tep_parse_printk_formats*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
 int *tep_parse_kallsyms*(struct tep_handle pass:[*]_tep_, const char pass:[*]_buf_);
+int *tep_parse_last_boot_info*(struct tep_handle pass:[*]_tep_, const char pass:[*]_lbi_);
 --
 
 DESCRIPTION
@@ -40,6 +41,15 @@ _tep_ handler such that function IP addresses can be mapped to their name when
 parsing events with %pS in the print format field. It parses the string _buf_ that
 holds the content of /proc/kallsyms and ends with a nul character ('\0').
 
+*tep_parse_last_boot_info()* loads information from the last_boot_info file of
+a persistent ring buffer instance. If a tracefs instance is declared as a
+persistent ring buffer and contains data from a previous boot, the last_boot_info
+file will have the addresses of the kernel as well as modules. It will use
+this information to base the function offsets in the binary buffer to match
+the function offsets in the kallsyms (loaded by *tep_parse_kallsyms()*)
+into the _tep_ handler. The _lbi_ is a nul terminated string that contains
+the content of the last_boot_info file from the persistent ring buffer instance.
+
 RETURN VALUE
 ------------
 The *tep_parse_saved_cmdlines*() function returns 0 in case of success, or -1
@@ -50,6 +60,9 @@ in case of an error.
 
 The *tep_parse_kallsyms*() function returns 0 in case of success, or -1
 in case of an error.
+
+The *tep_parse_last_boot_info*() function retuns 0 in case of success, or -1
+in case of error.
 
 EXAMPLE
 -------
