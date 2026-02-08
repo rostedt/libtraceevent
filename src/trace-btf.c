@@ -32,6 +32,16 @@ struct tep_btf {
 #define REALLOC_SIZE (1 << 10)
 #define REALLOC_MASK (REALLOC_SIZE - 1)
 
+#define for_each_enum(enum_type, member)				\
+	member = btf_enum(enum_type);					\
+	for (int __i = 0; __i < BTF_INFO_VLEN((enum_type)->info);	\
+		__i++, member++)
+
+static inline struct btf_enum *btf_enum(struct btf_type *t)
+{
+	return (struct btf_enum *)(t + 1);
+}
+
 static const char *btf_name(struct tep_btf *btf, int off)
 {
 	if (off < btf->hdr->str_len)
@@ -546,6 +556,7 @@ int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
 	struct tep_btf *btf = tep->btf;
 	struct btf_type *type = tep_btf_find_func(btf, func);
 	struct btf_param *param;
+	struct btf_enum *enump;
 	unsigned long long arg;
 	unsigned int encode;
 	const char *param_name;
@@ -628,6 +639,13 @@ int tep_btf_print_args(struct tep_handle *tep, struct trace_seq *s, void *args,
 			break;
 		case BTF_KIND_ENUM:
 			trace_seq_printf(s, "%lld", arg);
+			for_each_enum(t, enump) {
+				if (arg == enump->val) {
+					trace_seq_printf(s, " [%s]",
+						btf_name(btf, enump->name_off));
+					break;
+				}
+			}
 			break;
 		default:
 			/* This does not handle complex arguments */
