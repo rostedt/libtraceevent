@@ -6631,6 +6631,78 @@ static int print_function(struct trace_seq *s, const char *format,
 	return 0;
 }
 
+static int print_function_backtrace(struct trace_seq *s,
+				    void *data, int size,
+				    struct tep_event *event,
+				    struct tep_print_arg *arg, bool raw)
+{
+	struct func_map *func = NULL;
+	unsigned long long lookup;
+	unsigned long long val;
+
+	val = eval_num_arg(data, size, event, arg);
+	lookup = val ? val - 1 : 0;
+	func = val ? find_func(event->tep, lookup) : NULL;
+
+	if (func) {
+		trace_seq_puts(s, func->func);
+		trace_seq_printf(s, "+0x%llx", lookup - func->addr);
+	}
+
+	if (!func || raw) {
+		if (raw)
+			trace_seq_puts(s, " (");
+		if (event->tep->long_size == 4)
+			trace_seq_printf(s, "0x%lx", (long)val);
+		else
+			trace_seq_printf(s, "0x%llx", (long long)val);
+		if (raw)
+			trace_seq_puts(s, ")");
+	}
+
+	return 0;
+}
+
+static int print_addr_ref_arg(struct trace_seq *s, const char *format,
+			      void *data, int size,
+			      struct tep_event *event,
+			      struct tep_print_arg *arg)
+{
+	struct tep_format_field *field;
+	struct tep_handle *tep = event->tep;
+	unsigned long long val;
+	int width;
+	int ret = 0;
+
+	while (arg->type == TEP_PRINT_TYPE)
+		arg = arg->typecast.item;
+
+	if (arg->type != TEP_PRINT_FIELD) {
+		trace_seq_printf(s, "ARG TYPE NOT FIELD BUT %d", arg->type);
+		return ret;
+	}
+
+	field = arg->field.field;
+	if (!field) {
+		field = tep_find_any_field(event, arg->field.name);
+		if (!field) {
+			do_warning_event(event, "%s: field %s not found",
+					 __func__, arg->field.name);
+			return ret;
+		}
+		arg->field.field = field;
+	}
+
+	val = tep_read_number(tep, data + field->offset, field->size);
+	width = field->size * 2;
+	trace_seq_printf(s, "0x%0*llx", width, val);
+
+	if (format[1] == 'p' || format[1] == 'd')
+		ret++;
+
+	return ret;
+}
+
 static int print_arg_pointer(struct trace_seq *s, const char *format, int plen,
 			     void *data, int size,
 			     struct tep_event *event, struct tep_print_arg *arg,
@@ -6652,11 +6724,17 @@ static int print_arg_pointer(struct trace_seq *s, const char *format, int plen,
 	}
 
 	switch (*format) {
+	case 'B':
+		ret += print_function_backtrace(s, data, size, event, arg, raw);
+		break;
 	case 'F':
 	case 'f':
 	case 'S':
 	case 's':
 		ret += print_function(s, format, data, size, event, arg, raw);
+		break;
+	case 'a':
+		ret += print_addr_ref_arg(s, format, data, size, event, arg);
 		break;
 	case 'M':
 	case 'm':
@@ -6752,10 +6830,22 @@ static int parse_arg_format_pointer(const char *format)
 	int loop;
 
 	switch (*format) {
+	case 'B':
+		ret++;
+		break;
 	case 'F':
 	case 'S':
 	case 'f':
 	case 's':
+		ret++;
+		break;
+	case 'a':
+		switch (format[1]) {
+		case 'p':
+		case 'd':
+			ret++;
+			break;
+		}
 		ret++;
 		break;
 	case 'M':

@@ -17,6 +17,7 @@
 #include <ftw.h>
 
 #include <sys/mman.h>
+#include <stdint.h>
 
 #include <CUnit/CUnit.h>
 #include <CUnit/Basic.h>
@@ -182,6 +183,58 @@ static char sizeof_data[] = {
 	/* u8 */			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 static void *sizeof_event_data = (void *)sizeof_data;
+
+static const char pointer_backtrace_event[] =
+	"name: pointer_backtrace_event\n"
+	"ID: 40\n"
+	"format:\n"
+	"\tfield:unsigned short common_type;\toffset:0;\tsize:2;\tsigned:0;\n"
+	"\tfield:unsigned char common_flags;\toffset:2;\tsize:1;\tsigned:0;\n"
+	"\tfield:unsigned char common_preempt_count;\toffset:3;\tsize:1;\tsigned:0;\n"
+	"\tfield:int common_pid;\toffset:4;\tsize:4;\tsigned:1;\n"
+	"\n"
+	"\tfield:unsigned long long ptr;\toffset:8;\tsize:8;\tsigned:0;\n"
+	"\n"
+	"print fmt: \"ptr=%pB\", REC->ptr\n";
+
+static const char phys_addr_event[] =
+	"name: phys_addr_event\n"
+	"ID: 41\n"
+	"format:\n"
+	"\tfield:unsigned short common_type;\toffset:0;\tsize:2;\tsigned:0;\n"
+	"\tfield:unsigned char common_flags;\toffset:2;\tsize:1;\tsigned:0;\n"
+	"\tfield:unsigned char common_preempt_count;\toffset:3;\tsize:1;\tsigned:0;\n"
+	"\tfield:int common_pid;\toffset:4;\tsize:4;\tsigned:1;\n"
+	"\n"
+	"\tfield:unsigned long long phys;\toffset:8;\tsize:8;\tsigned:0;\n"
+	"\n"
+	"print fmt: \"phys=%pap\", REC->phys\n";
+
+static const char phys_addr_plain_event[] =
+	"name: phys_addr_plain_event\n"
+	"ID: 43\n"
+	"format:\n"
+	"\tfield:unsigned short common_type;\toffset:0;\tsize:2;\tsigned:0;\n"
+	"\tfield:unsigned char common_flags;\toffset:2;\tsize:1;\tsigned:0;\n"
+	"\tfield:unsigned char common_preempt_count;\toffset:3;\tsize:1;\tsigned:0;\n"
+	"\tfield:int common_pid;\toffset:4;\tsize:4;\tsigned:1;\n"
+	"\n"
+	"\tfield:unsigned long long phys;\toffset:8;\tsize:8;\tsigned:0;\n"
+	"\n"
+	"print fmt: \"phys=%pa\", REC->phys\n";
+
+static const char dma_addr_event[] =
+	"name: dma_addr_event\n"
+	"ID: 42\n"
+	"format:\n"
+	"\tfield:unsigned short common_type;\toffset:0;\tsize:2;\tsigned:0;\n"
+	"\tfield:unsigned char common_flags;\toffset:2;\tsize:1;\tsigned:0;\n"
+	"\tfield:unsigned char common_preempt_count;\toffset:3;\tsize:1;\tsigned:0;\n"
+	"\tfield:int common_pid;\toffset:4;\tsize:4;\tsigned:1;\n"
+	"\n"
+	"\tfield:unsigned int dma;\toffset:8;\tsize:4;\tsigned:0;\n"
+	"\n"
+	"print fmt: \"dma=%pad\", REC->dma\n";
 
 DECL_CPUMASK_EVENT_DATA(full, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff);
 #define CPUMASK_FULL     "ARRAY[ff, ff, ff, ff, ff, ff, ff, ff]"
@@ -381,6 +434,78 @@ static void test_parse_sizeof_undef(void)
 	test_parse_sizeof(0, 5, "sizeof_undef", SIZEOF_LONG0_FMT);
 }
 
+static void parse_pointer_event(const char *format, const char *system,
+				void *data, int size, const char *expected)
+{
+	struct tep_event *event;
+	struct tep_record record;
+
+	record.data = data;
+	record.size = size;
+
+	CU_TEST(tep_parse_format(test_tep, &event, format, strlen(format),
+				 system) == TEP_ERRNO__SUCCESS);
+
+	trace_seq_reset(test_seq);
+	tep_print_event(test_tep, test_seq, &record, "%s", TEP_PRINT_INFO);
+	trace_seq_do_printf(test_seq);
+	CU_TEST(strcmp(test_seq->buffer, expected) == 0);
+}
+
+static void test_parse_pointer_backtrace(void)
+{
+	unsigned char data[16] = { 0 };
+	unsigned short type = 40;
+	uint64_t ptr = 0x1001ULL;
+
+	memcpy(data, &type, sizeof(type));
+	memcpy(data + 8, &ptr, sizeof(ptr));
+
+	parse_pointer_event(pointer_backtrace_event, "ptr_backtrace",
+			    data, sizeof(data), "ptr=test_func+0x0");
+}
+
+static void test_parse_phys_addr(void)
+{
+	unsigned char data[16] = { 0 };
+	unsigned short type = 41;
+	uint64_t phys = 0x123456789abcdef0ULL;
+
+	memcpy(data, &type, sizeof(type));
+	memcpy(data + 8, &phys, sizeof(phys));
+
+	parse_pointer_event(phys_addr_event, "ptr_phys",
+			    data, sizeof(data),
+			    "phys=0x123456789abcdef0");
+}
+
+static void test_parse_phys_addr_plain(void)
+{
+	unsigned char data[16] = { 0 };
+	unsigned short type = 43;
+	uint64_t phys = 0x123456789abcdef0ULL;
+
+	memcpy(data, &type, sizeof(type));
+	memcpy(data + 8, &phys, sizeof(phys));
+
+	parse_pointer_event(phys_addr_plain_event, "ptr_phys_plain",
+			    data, sizeof(data),
+			    "phys=0x123456789abcdef0");
+}
+
+static void test_parse_dma_addr(void)
+{
+	unsigned char data[12] = { 0 };
+	unsigned short type = 42;
+	uint32_t dma = 0x1234abcdU;
+
+	memcpy(data, &type, sizeof(type));
+	memcpy(data + 8, &dma, sizeof(dma));
+
+	parse_pointer_event(dma_addr_event, "ptr_dma",
+			    data, sizeof(data), "dma=0x1234abcd");
+}
+
 static void test_btf_read(void)
 {
 	uint64_t args[] = {0x7ffe7d33f3d0, 0, 0, 0, 0, 0};
@@ -443,6 +568,10 @@ static int test_suite_init(void)
 	test_tep = tep_alloc();
 	if (!test_tep)
 		return 1;
+	if (tep_register_function(test_tep, "test_func", 0x1000, NULL))
+		return 1;
+	if (tep_register_function(test_tep, "test_func_end", 0x2000, NULL))
+		return 1;
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 	tep_set_file_bigendian(test_tep, TEP_BIG_ENDIAN);
 #endif
@@ -480,6 +609,14 @@ void test_traceevent_lib(void)
 		    test_parse_sizeof4);
 	CU_add_test(suite, "parse sizeof() no long size defined",
 		    test_parse_sizeof_undef);
+	CU_add_test(suite, "parse %pB pointer format",
+		    test_parse_pointer_backtrace);
+	CU_add_test(suite, "parse %pap pointer format",
+		    test_parse_phys_addr);
+	CU_add_test(suite, "parse %pa pointer format",
+		    test_parse_phys_addr_plain);
+	CU_add_test(suite, "parse %pad pointer format",
+		    test_parse_dma_addr);
 	CU_add_test(suite, "read BTF",
 		    test_btf_read);
 }
