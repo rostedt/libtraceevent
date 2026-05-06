@@ -388,6 +388,7 @@ static void test_btf_read(void)
 	struct stat st;
 	void *buf;
 	int fd, nr = 6;
+	bool malloced = false;
 
 	fd = open("/sys/kernel/btf/vmlinux", O_RDONLY);
 	if (fd < 0) {
@@ -397,11 +398,23 @@ static void test_btf_read(void)
 	CU_TEST(fstat(fd, &st) == 0);
 
 	buf = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	CU_TEST(buf != MAP_FAILED);
-
+	if (buf == MAP_FAILED) {
+		malloced = true;
+		buf = malloc(st.st_size);
+		if (buf == NULL) {
+			printf("[FAILED TO ALLOCATE MEMORY FOR BTF FILE CONTENTS] ...");
+			close(fd);
+			return;
+		}
+		CU_TEST(read(fd, buf, st.st_size) == st.st_size);
+	}
 	CU_TEST(tep_load_btf(test_tep, buf, st.st_size) == 0);
 
-	munmap(buf, st.st_size);
+	if (malloced) {
+		free(buf);
+	} else {
+		munmap(buf, st.st_size);
+	}
 	close(fd);
 
 	trace_seq_init(s);
