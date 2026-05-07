@@ -8,6 +8,7 @@
  */
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -382,7 +383,7 @@ static void test_parse_sizeof_undef(void)
 
 static void test_btf_read(void)
 {
-	unsigned long args[] = {0x7ffe7d33f3d0, 0, 0, 0, 0, 0};
+	uint64_t args[] = {0x7ffe7d33f3d0, 0, 0, 0, 0, 0};
 	const char *func = "getname_flags";
 	struct trace_seq *s = test_seq;
 	struct stat st;
@@ -420,7 +421,7 @@ static void test_btf_read(void)
 	trace_seq_init(s);
 	trace_seq_printf(s, "%s(", func);
 
-	CU_TEST(tep_btf_print_args(test_tep, s, args, nr, sizeof(long), func) == 0);
+	CU_TEST(tep_btf_print_args(test_tep, s, args, nr, sizeof(*args), func) == 0);
 
 	trace_seq_puts(s, ")\n");
 	trace_seq_terminate(s);
