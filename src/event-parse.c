@@ -5350,6 +5350,7 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 	case TEP_PRINT_INT_ARRAY: {
 		void *num;
 		int el_size;
+		int is_print = 0;
 
 		len = 0;
 
@@ -5384,7 +5385,20 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 				trace_seq_putc(s, ',');
 
 			if (el_size == 1) {
-				trace_seq_printf(s, "0x%x", *(uint8_t *)num);
+				int ch = *(uint8_t *)num;
+
+				trace_seq_printf(s, "0x%x", ch);
+
+				if (!is_print)
+					is_print = 1;
+
+				/*
+				 * Only print string if all characters are
+				 * printable
+				 */
+				if (is_print && !isprint(ch) && !isspace(ch))
+					is_print = -1;
+
 			} else if (el_size == 2) {
 				trace_seq_printf(s, "0x%x", *(uint16_t *)num);
 			} else if (el_size == 4) {
@@ -5400,6 +5414,19 @@ static void print_str_arg(struct trace_seq *s, void *data, int size,
 			num += el_size;
 		}
 		trace_seq_putc(s, '}');
+
+		if (is_print == 1) {
+			char *p = data + offset;
+
+			trace_seq_puts(s, " \"");
+			for (i = 0; i < len; i++) {
+				if (p[i] == '\n')
+					trace_seq_puts(s, "\\n");
+				else
+					trace_seq_putc(s, p[i]);
+			}
+			trace_seq_putc(s, '"');
+		}
 		break;
 	}
 	case TEP_PRINT_TYPE:
