@@ -184,6 +184,74 @@ static char sizeof_data[] = {
 };
 static void *sizeof_event_data = (void *)sizeof_data;
 
+static const char symbol_kallsyms[] =
+	"0000000000001000 T _stext\n"
+	"0000000000001020 T do_work\n"
+	"0000000000001100 T end_text\n"
+	"0000000000002000 D jiffies\n";
+
+#define SYMBOL_ARITH_FMT "caller=do_work+0x0"
+static const char symbol_arith_event[] =
+	"name: symbol_arith\n"
+	"ID: 24\n"
+	"format:\n"
+	"\tfield:unsigned short common_type;\toffset:0;\tsize:2;\tsigned:0;\n"
+	"\tfield:unsigned char common_flags;\toffset:2;\tsize:1;\tsigned:0;\n"
+	"\tfield:unsigned char common_preempt_count;\toffset:3;\tsize:1;\tsigned:0;\n"
+	"\tfield:int common_pid;\toffset:4;\tsize:4;\tsigned:1;\n"
+	"\n"
+	"\tfield:unsigned int caller_off;\toffset:8;\tsize:4;\tsigned:0;\n"
+	"\n"
+	"print fmt: \"caller=%pS\", REC->caller_off + _stext\n";
+
+static char symbol_arith_data[] = {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	/* common type */		24, 0x00,
+#else
+	/* common type */		0x00, 24,
+#endif
+	/* common flags */		0x00,
+	/* common_preempt_count */	0x00,
+	/* common_pid */		0x00, 0x00, 0x00, 0x00,
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	/* caller_off */		0x20, 0x00, 0x00, 0x00,
+#else
+	/* caller_off */		0x00, 0x00, 0x00, 0x20,
+#endif
+};
+
+#define JIFFIES_ARITH_FMT "age=INVALID"
+static const char jiffies_arith_event[] =
+	"name: jiffies_arith\n"
+	"ID: 25\n"
+	"format:\n"
+	"\tfield:unsigned short common_type;\toffset:0;\tsize:2;\tsigned:0;\n"
+	"\tfield:unsigned char common_flags;\toffset:2;\tsize:1;\tsigned:0;\n"
+	"\tfield:unsigned char common_preempt_count;\toffset:3;\tsize:1;\tsigned:0;\n"
+	"\tfield:int common_pid;\toffset:4;\tsize:4;\tsigned:1;\n"
+	"\n"
+	"\tfield:unsigned long dirtied_when;\toffset:8;\tsize:8;\tsigned:0;\n"
+	"\n"
+	"print fmt: \"age=%lu\", (jiffies - REC->dirtied_when) / 250\n";
+
+static char jiffies_arith_data[] = {
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	/* common type */		25, 0x00,
+#else
+	/* common type */		0x00, 25,
+#endif
+	/* common flags */		0x00,
+	/* common_preempt_count */	0x00,
+	/* common_pid */		0x00, 0x00, 0x00, 0x00,
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+	/* dirtied_when */		0xf4, 0x01, 0x00, 0x00,
+					0x00, 0x00, 0x00, 0x00,
+#else
+	/* dirtied_when */		0x00, 0x00, 0x00, 0x00,
+					0x00, 0x00, 0x01, 0xf4,
+#endif
+};
+
 static const char pointer_backtrace_event[] =
 	"name: pointer_backtrace_event\n"
 	"ID: 40\n"
@@ -434,6 +502,51 @@ static void test_parse_sizeof_undef(void)
 	test_parse_sizeof(0, 5, "sizeof_undef", SIZEOF_LONG0_FMT);
 }
 
+static void parse_symbol_event(const char *format, const char *system,
+			       void *data, int size, const char *expected)
+{
+	struct tep_handle *tep;
+	struct tep_event *event;
+	struct tep_record record;
+
+	tep = tep_alloc();
+	CU_TEST(tep != NULL);
+	if (!tep)
+		return;
+
+#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+	tep_set_file_bigendian(tep, TEP_BIG_ENDIAN);
+#endif
+
+	record.data = data;
+	record.size = size;
+
+	CU_TEST(tep_parse_kallsyms(tep, symbol_kallsyms) == 0);
+	CU_TEST(tep_parse_format(tep, &event, format, strlen(format),
+				 system) == TEP_ERRNO__SUCCESS);
+
+	trace_seq_reset(test_seq);
+	tep_print_event(tep, test_seq, &record, "%s", TEP_PRINT_INFO);
+	trace_seq_do_printf(test_seq);
+	CU_TEST(strcmp(test_seq->buffer, expected) == 0);
+
+	tep_free(tep);
+}
+
+static void test_parse_symbol_arith(void)
+{
+	parse_symbol_event(symbol_arith_event, "symbol_arith",
+			   symbol_arith_data, sizeof(symbol_arith_data),
+			   SYMBOL_ARITH_FMT);
+}
+
+static void test_parse_jiffies_arith(void)
+{
+	parse_symbol_event(jiffies_arith_event, "jiffies_arith",
+			   jiffies_arith_data, sizeof(jiffies_arith_data),
+			   JIFFIES_ARITH_FMT);
+}
+
 static void parse_pointer_event(const char *format, const char *system,
 				void *data, int size, const char *expected)
 {
@@ -609,6 +722,10 @@ void test_traceevent_lib(void)
 		    test_parse_sizeof4);
 	CU_add_test(suite, "parse sizeof() no long size defined",
 		    test_parse_sizeof_undef);
+	CU_add_test(suite, "parse symbol arithmetic",
+		    test_parse_symbol_arith);
+	CU_add_test(suite, "reject non-text symbol arithmetic",
+		    test_parse_jiffies_arith);
 	CU_add_test(suite, "parse %pB pointer format",
 		    test_parse_pointer_backtrace);
 	CU_add_test(suite, "parse %pap pointer format",

@@ -1017,6 +1017,19 @@ int tep_load_modules(struct tep_handle *tep, char *modules, size_t size)
 	return ret;
 }
 
+static bool is_kernel_text_symbol(char ch)
+{
+	switch (ch) {
+	case 'T':
+	case 't':
+	case 'W':
+	case 'w':
+		return true;
+	default:
+		return false;
+	}
+}
+
 /**
  * tep_parse_kallsyms - load functions from a read of /proc/kallsyms
  * @tep: a handle to the trace event parser
@@ -1070,6 +1083,10 @@ int tep_parse_kallsyms(struct tep_handle *tep, const char *kallsyms)
 		 *  - x86-64 that reports per-cpu variable offsets as absolute
 		 */
 		if (func[0] != '$' && ch != 'A' && ch != 'a') {
+			if (!is_kernel_text_symbol(ch)) {
+				line = strtok_r(NULL, "\n", &next);
+				continue;
+			}
 			line[func_end] = 0;
 			if (mod_end) {
 				mod = line + mod_start;
@@ -4580,12 +4597,15 @@ tep_find_event_by_name(struct tep_handle *tep,
 }
 
 static unsigned long long test_for_symbol(struct tep_handle *tep,
-					  struct tep_print_arg *arg)
+					  struct tep_print_arg *arg,
+					  bool *found)
 {
 	unsigned long long val = 0;
 	struct func_list *item = tep->funclist;
 	char *func;
 	int i;
+
+	*found = false;
 
 	if (isdigit(arg->atom.atom[0]))
 		return 0;
@@ -4607,9 +4627,13 @@ static unsigned long long test_for_symbol(struct tep_handle *tep,
 
 		if (strcmp(arg->atom.atom, name) == 0) {
 			val = addr;
+			*found = true;
 			break;
 		}
 	}
+
+	if (!*found)
+		return 0;
 
 	/*
 	 * This modifies the arg to hardcode the value
@@ -4686,13 +4710,17 @@ static bool check_data_offset_size(struct tep_event *event, const char *field_na
 }
 
 static unsigned long long
-eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg *arg)
+eval_num_arg_stat(void *data, int size, struct tep_event *event,
+		  struct tep_print_arg *arg, bool *valid)
 {
 	struct tep_handle *tep = event->tep;
 	unsigned long long val = 0;
 	unsigned long long left, right;
 	struct tep_print_arg *typearg = NULL;
 	struct tep_print_arg *larg;
+	bool found = false;
+	bool left_valid = true;
+	bool right_valid = true;
 	unsigned int offset;
 	unsigned int field_size;
 
@@ -4702,8 +4730,11 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 		return 0;
 	case TEP_PRINT_ATOM:
 		val = strtoull(arg->atom.atom, NULL, 0);
-		if (!val)
-			val = test_for_symbol(tep, arg);
+		if (!val && !isdigit(arg->atom.atom[0])) {
+			val = test_for_symbol(tep, arg, &found);
+			if (!found)
+				*valid = false;
+		}
 		return val;
 	case TEP_PRINT_FIELD:
 		if (!arg->field.field) {
@@ -4728,7 +4759,10 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 	case TEP_PRINT_HEX_STR:
 		break;
 	case TEP_PRINT_TYPE:
-		val = eval_num_arg(data, size, event, arg->typecast.item);
+		val = eval_num_arg_stat(data, size, event, arg->typecast.item,
+					valid);
+		if (!*valid)
+			return 0;
 		return eval_type(val, arg, 0);
 	case TEP_PRINT_STRING:
 	case TEP_PRINT_BSTRING:
@@ -4749,7 +4783,12 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 			 * Arrays are special, since we don't want
 			 * to read the arg as is.
 			 */
-			right = eval_num_arg(data, size, event, arg->op.right);
+			right = eval_num_arg_stat(data, size, event,
+						 arg->op.right, &right_valid);
+			if (!right_valid) {
+				*valid = false;
+				return 0;
+			}
 
 			/* handle typecasts */
 			larg = arg->op.left;
@@ -4797,17 +4836,34 @@ eval_num_arg(void *data, int size, struct tep_event *event, struct tep_print_arg
 				val = eval_type(val, typearg, 1);
 			break;
 		} else if (strcmp(arg->op.op, "?") == 0) {
-			left = eval_num_arg(data, size, event, arg->op.left);
+			left = eval_num_arg_stat(data, size, event, arg->op.left,
+						&left_valid);
+			if (!left_valid) {
+				*valid = false;
+				return 0;
+			}
 			arg = arg->op.right;
 			if (left)
-				val = eval_num_arg(data, size, event, arg->op.left);
+				val = eval_num_arg_stat(data, size, event,
+							arg->op.left, &left_valid);
 			else
-				val = eval_num_arg(data, size, event, arg->op.right);
+				val = eval_num_arg_stat(data, size, event,
+							arg->op.right, &right_valid);
+			if ((left && !left_valid) || (!left && !right_valid)) {
+				*valid = false;
+				return 0;
+			}
 			break;
 		}
  default_op:
-		left = eval_num_arg(data, size, event, arg->op.left);
-		right = eval_num_arg(data, size, event, arg->op.right);
+		left = eval_num_arg_stat(data, size, event, arg->op.left,
+					 &left_valid);
+		right = eval_num_arg_stat(data, size, event, arg->op.right,
+					  &right_valid);
+		if (!left_valid || !right_valid) {
+			*valid = false;
+			return 0;
+		}
 		switch (arg->op.op[0]) {
 		case '!':
 			switch (arg->op.op[1]) {
@@ -4920,6 +4976,15 @@ out_warning_field:
 	do_warning_event(event, "%s: field %s not found",
 			 __func__, arg->field.name);
 	return 0;
+}
+
+static unsigned long long
+eval_num_arg(void *data, int size, struct tep_event *event,
+	     struct tep_print_arg *arg)
+{
+	bool valid = true;
+
+	return eval_num_arg_stat(data, size, event, arg, &valid);
 }
 
 struct flag {
@@ -6634,9 +6699,14 @@ static int print_function(struct trace_seq *s, const char *format,
 			  struct tep_print_arg *arg, bool raw)
 {
 	struct func_map *func;
+	bool valid = true;
 	unsigned long long val;
 
-	val = eval_num_arg(data, size, event, arg);
+	val = eval_num_arg_stat(data, size, event, arg, &valid);
+	if (!valid) {
+		trace_seq_puts(s, "INVALID");
+		return 0;
+	}
 	func = find_func(event->tep, val);
 	if (func) {
 		trace_seq_puts(s, func->func);
@@ -6735,6 +6805,7 @@ static int print_arg_pointer(struct trace_seq *s, const char *format, int plen,
 			     struct tep_event *event, struct tep_print_arg *arg,
 			     bool raw)
 {
+	bool valid = true;
 	unsigned long long val;
 	int ret = 1;
 
@@ -6779,7 +6850,11 @@ static int print_arg_pointer(struct trace_seq *s, const char *format, int plen,
 		break;
 	default:
 		ret = 0;
-		val = eval_num_arg(data, size, event, arg);
+		val = eval_num_arg_stat(data, size, event, arg, &valid);
+		if (!valid) {
+			trace_seq_puts(s, "INVALID");
+			break;
+		}
 		trace_seq_printf(s, "%p", (void *)(intptr_t)val);
 		break;
 	}
@@ -6792,9 +6867,14 @@ static int print_arg_number(struct trace_seq *s, const char *format, int plen,
 			    void *data, int size, int ls,
 			    struct tep_event *event, struct tep_print_arg *arg)
 {
+	bool valid = true;
 	unsigned long long val;
 
-	val = eval_num_arg(data, size, event, arg);
+	val = eval_num_arg_stat(data, size, event, arg, &valid);
+	if (!valid) {
+		trace_seq_puts(s, "INVALID");
+		return 0;
+	}
 
 	switch (ls) {
 	case -2:
