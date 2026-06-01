@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <errno.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -619,6 +620,28 @@ static void test_parse_dma_addr(void)
 			    data, sizeof(data), "dma=0x1234abcd");
 }
 
+static int read_full(int fd, void *buf, size_t size)
+{
+	char *data = buf;
+	size_t total = 0;
+
+	while (total < size) {
+		ssize_t ret;
+
+		ret = read(fd, data + total, size - total);
+		if (ret < 0) {
+			if (errno == EINTR)
+				continue;
+			return -1;
+		}
+		if (!ret)
+			return -1;
+		total += ret;
+	}
+
+	return 0;
+}
+
 static void test_btf_read(void)
 {
 	uint64_t args[] = {0x7ffe7d33f3d0, 0, 0, 0, 0, 0};
@@ -638,6 +661,8 @@ static void test_btf_read(void)
 
 	buf = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (buf == MAP_FAILED) {
+		int ret;
+
 		malloced = true;
 		buf = malloc(st.st_size);
 		if (buf == NULL) {
@@ -645,7 +670,12 @@ static void test_btf_read(void)
 			close(fd);
 			return;
 		}
-		CU_TEST(read(fd, buf, st.st_size) == st.st_size);
+		CU_TEST((ret = read_full(fd, buf, st.st_size)) == 0);
+		if (ret < 0) {
+			free(buf);
+			close(fd);
+			return;
+		}
 	}
 	CU_TEST(tep_load_btf(test_tep, buf, st.st_size) == 0);
 
