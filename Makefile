@@ -208,7 +208,7 @@ libtraceevent.so: $(bdir) $(LIBTRACEEVENT_SHARED)
 
 libs: libtraceevent.a libtraceevent.so
 
-$(LIBTRACEEVENT_STATIC): force
+$(LIBTRACEEVENT_STATIC): force $(LIBTRACEEVENT_SHARED)
 	$(Q)$(call descend,$(src)/src,$@)
 
 $(LIBTRACEEVENT_SHARED): force
