@@ -3490,8 +3490,11 @@ process_int_dynamic_array(struct tep_event *event, struct tep_print_arg *arg, ch
 	 * the index into where the array starts.
 	 */
 	type = read_token(event->tep, &token);
-	if (type != TEP_EVENT_ITEM)
+	if (type != TEP_EVENT_ITEM) {
+		free_token(token);
+		*tok = NULL;
 		return TEP_EVENT_ERROR;
+	}
 
 	/* Find the field */
 	field = tep_find_field(event, token);
@@ -3507,7 +3510,7 @@ process_int_dynamic_array(struct tep_event *event, struct tep_print_arg *arg, ch
 		goto out;
 
 	arg->int_array.field = alloc_arg();
-	if (!arg) {
+	if (!arg->int_array.field) {
 		do_warning_event(event, "%s: not enough memory!", __func__);
 		goto out;
 	}
@@ -3516,6 +3519,7 @@ process_int_dynamic_array(struct tep_event *event, struct tep_print_arg *arg, ch
 	arg->int_array.field->dynarray.field = field;
 	arg->int_array.field->dynarray.index = 0;
 
+	free_token(token);
 	return read_token_item(event->tep, tok);
 out:
 	free_token(token);
