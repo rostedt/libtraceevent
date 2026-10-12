@@ -849,7 +849,7 @@ int kbuffer_curr_size(struct kbuffer *kbuf)
 int kbuffer_missed_events(struct kbuffer *kbuf)
 {
 	/* Only the first event can have missed events */
-	if (kbuf->curr)
+	if (kbuf->curr != kbuf->first)
 		return 0;
 
 	return kbuf->lost_events;
@@ -1014,7 +1014,7 @@ int kbuffer_read_buffer(struct kbuffer *kbuf, void *buffer, int len)
 	 * If reading the first event and there are lost events, add it
 	 * to the buffer.
 	 */
-	if (!save_curr && kbuf->lost_events) {
+	if (save_curr == kbuf->first && kbuf->lost_events) {
 		unsigned long long cnt_8;
 		unsigned int cnt_4;
 		int word_size;
